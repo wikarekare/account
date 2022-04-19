@@ -1,0 +1,171 @@
+class Graph_Total_Usage < Graph_Parent
+  attr_reader :start_when, :stop_when, :title
+
+  def initialize(mysql_conf,title=nil, start_when=nil, stop_when=nil)
+    @mysql_conf = mysql_conf
+    t = Time.now
+    @images = ""
+    @title = title
+    #default to the start of the billing period, which is the start of the 23rd of the previous month.
+    @start_when = start_when == nil ? t.start_of_billing : start_when
+    #default to the end of the billing period, which is the start of the 23rd of this month.
+    @stop_when = stop_when == nil ? @start_when.end_of_billing : stop_when
+    @image_file = "wikkpT3D_#{@start_when.year}_#{@start_when.month}_#{@start_when.day}.png"
+    
+    temp_filename_base = "#{TMP_DIR}/#{NETSTAT_DIR}/totals_#{t.tv_sec}#{t.tv_usec}"
+    @tmp_stats_file = temp_filename_base + ".txt"
+    @gplot_filename = temp_filename_base + ".plot"
+    TmpFile.open(@gplot_filename, "w") do |plot_fd|
+      #plot_fd.no_unlink
+      TmpFile.open(@tmp_stats_file,'w') do |txt_fd|
+        #txt_fd.no_unlink
+        fetch_data(txt_fd)
+        gen_graph_instructions(plot_fd)
+        plot_fd.flush
+        txt_fd.flush
+        TmpFile.exec(GNUPLOT, @gplot_filename)
+      end
+    end
+    
+    @images = "<p><img src=\"/#{NETSTAT_DIR}/tmp/#{@image_file}?start_time=#{@start_when.xmlschema}&end_time=#{@stop_when.xmlschema}\"></p>\n"
+    
+  end
+
+
+
+  private
+  
+  def fetch_data(txt_fd)
+    if (my = Mysql::new(@mysql_conf.host, @mysql_conf.dbuser, @mysql_conf.key, @mysql_conf.db)) != nil
+
+    #puts("#select hostname, sum(bytes_in)/1073741824.0, sum(bytes_out)/1073741824.0 from log_summary where log_timestamp >= '#{@start_when.strftime("%Y-%m-%d %H:%M:%S")}' and log_timestamp < '#{@stop_when.strftime("%Y-%m-%d %H:%M:%S")}' group by hostname order by hostname")
+      res = my.query("select hostname, sum(bytes_in)/1073741824.0, sum(bytes_out)/1073741824.0 from log_summary where " +
+      "log_timestamp >= '#{start_time.to_sql}' and " +
+      "log_timestamp <= '#{end_time.to_sql}' " +
+          "group by hostname order by hostname")
+    #puts "#Query done"
+      @sum_in = ["In",   0.0]   
+      @sum_out = ["Out", 0.0] 
+      @key_by_index = ["Direction", "Total"]
+      (1..NLINKS).each do |i| #0.0's are there so we have the right number of entries before we append to the array
+        @sum_in << 0.0 
+        @sum_out << 0.0
+        @key_by_index << "Link#{i}"
+      end
+      if res != nil
+        res.each do |row|
+          if row[0] == "link1"
+            @sum_in[2] = row[1].to_f
+            @sum_out[2] = row[2].to_f
+            #Also want Total = Link1 + Link2 + Link3 + Link4
+            @sum_in[1] += row[1].to_f
+            @sum_out[1] += row[2].to_f
+          elsif row[0] == "link2"
+            @sum_in[3] = row[1].to_f
+            @sum_out[3] = row[2].to_f
+            #Also want Total = Link1 + Link2 + Link3 + Link4
+            @sum_in[1] += row[1].to_f
+            @sum_out[1] += row[2].to_f
+          elsif row[0] == "link3"
+            @sum_in[4] = row[1].to_f
+            @sum_out[4] = row[2].to_f
+            #Also want Total = Link1 + Link2 + Link3 + Link4
+            @sum_in[1] += row[1].to_f
+            @sum_out[1] += row[2].to_f
+          elsif row[0] == "link4"
+            @sum_in[5] = row[1].to_f
+            @sum_out[5] = row[2].to_f
+            #Also want Total = Link1 + Link2 + Link3 + Link4
+            @sum_in[1] += row[1].to_f
+            @sum_out[1] += row[2].to_f
+          elsif row[0] == "link5"
+            @sum_in[6] = row[1].to_f
+            @sum_out[6] = row[2].to_f
+            #Also want Total = Link1 + Link2 + Link3 + Link4 + Link5
+            @sum_in[1] += row[1].to_f
+            @sum_out[1] += row[2].to_f
+          elsif row[0] == "link6"
+            @sum_in[7] = row[1].to_f
+            @sum_out[7] = row[2].to_f
+            #Also want Total = Link1 + Link2 + Link3 + Link4 + Link5 + Link6 
+            @sum_in[1] += row[1].to_f
+            @sum_out[1] += row[2].to_f
+          elsif row[0] == "link7"
+            @sum_in[8] = row[1].to_f
+            @sum_out[8] = row[2].to_f
+            #Also want Total = Link1 + Link2 + Link3 + Link4 + Link5 + Link6 + Link7
+            @sum_in[1] += row[1].to_f
+            @sum_out[1] += row[2].to_f
+          else #All other hosts append to the gbytes in, out and key arrays
+            @key_by_index << row[0]
+            @sum_in << row[1].to_f
+            @sum_out << row[2].to_f
+          end
+        end
+        res.free
+      end
+      my.close
+    end
+    
+    print_header txt_fd
+    print_key txt_fd
+    print_line txt_fd
+    
+  end
+  
+  def print_header(fd_out)
+    fd_out.puts "#[Accumulated GBytes This Month (#{@start_when.strftime("%Y-%m-%d %H:%M:%S")} to #{@stop_when.strftime("%Y-%m-%d %H:%M:%S")})]\n"
+  end
+
+  def print_key(fd_out)
+    fd_out.puts "#{@key_by_index.join("\t")}"
+  end
+
+  def print_line(fd_out)
+    fd_out.puts "#{@sum_in.join("\t")}"
+    fd_out.puts "#{@sum_out.join("\t")}"
+  end
+
+  def gen_graph_instructions(fd)
+    fd.print <<-EOF
+set output "#{WWW_DIR}/#{NETSTAT_DIR}/tmp/#{@image_file}"
+set terminal png enhanced truecolor font "Monoco,12" size 1224,757
+set boxwidth 0.75 absolute
+set style fill  solid 1.00 border -1
+set style rectangle back fc lt -3 fillstyle  solid 1.00 border -1
+set key outside right top vertical Left reverse invert enhanced samplen 4 spacing 1 width 0 height 0 autotitles columnhead box linetype -2 linewidth 1.000
+set style histogram columnstacked title offset 0,0,0
+set datafile missing '-'
+set style data histograms
+set xtics border out nomirror rotate by 0-90  offset character 0,0-3, 0 autofreq 
+set grid ytics mytics linetype 1 linetype 0 linewidth 1
+set ytics 2.5
+set yrange [0:*]
+set mytics 5
+EOF
+	if @title
+		fd.print "set title \"#{title} (#{Time.now.to_sql})\" offset character 0, 0, 0 font \"\" norotate\n"
+	elsif @start_when
+		if @stop_when
+			fd.print "set title \"Monthly Usage per site #{@start_when.strftime("%Y-%m-%d")} to #{@stop_when.strftime("%Y-%m-%d")} (#{Time.now.to_sql})\"  offset character 0, 0, 0 font \"\" norotate\n"
+		else	
+			fd.print "set title \"Monthly Usage per site starting at #{@start_when.strftime("%Y-%m-%d")} (#{Time.now.to_sql})\"  offset character 0, 0, 0 font \"\" norotate\n"
+		end	
+	else
+		fd.print "set title \"Monthly Usage per site (#{Time.now.to_sql})\"  offset character 0, 0, 0 font \"\" norotate\n"
+	end
+	fd.print <<-EOF
+set xlabel "Site"  offset character 0, 0, 0 font "" textcolor lt -1 norotate
+set ylabel "Giga Bytes"  offset character 0, 0, 0 font "" textcolor lt -1 rotate by 90
+set colorbox vertical origin screen 0.9, 0.2, 0 size screen 0.05, 0.6, 0 bdefault
+EOF
+	print_plot_cmd(fd)
+  end
+
+  def print_plot_cmd(fd)
+    fd.print "plot '#{@tmp_stats_file}' "
+    (@key_by_index.length - 2).times { |x| fd.print " using #{x + 2} ti col, '' " }
+    fd.print " using #{@key_by_index.length}:key(1) ti col\n"
+  end
+
+end
