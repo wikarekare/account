@@ -1,5 +1,5 @@
 require 'rubygems'
-require 'mysql'
+require 'wikk_sql'
 require 'pp'
 require 'date'
 require 'time'
