@@ -1,2 +1,2 @@
 #!/bin/bash
-rsync -av --no-owner --include-from=manifest root@db2.wikarekare.org:/wikk/
+rsync -arv --no-owner --files-from=manifest . ${WIKK_TARGET}
