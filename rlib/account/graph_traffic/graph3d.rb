@@ -2,6 +2,7 @@ class Graph_3D < Graph_Parent
   attr_accessor :hosts
 
   def initialize(mysql_conf, dist_host, links, start_time, end_time)
+    super
     @mysql_conf = mysql_conf
     @images = ''
     hosts = [ 'Total' ]

@@ -1,5 +1,6 @@
 class Graph_2D < Graph_Parent
   def initialize(mysql_conf, host, split_in_out, start_time, end_time, url = nil)
+    super
     @mysql_conf = mysql_conf
     graph(host, split_in_out, start_time, end_time)
     @images = if url

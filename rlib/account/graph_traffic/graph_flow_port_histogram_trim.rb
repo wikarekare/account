@@ -2,12 +2,14 @@ require 'open3'
 require 'socket'
 require_relative '../../ipv4.rb'
 
+# Use flow-tools to get connections and graph with GnuPlot
 class Graph_Flow_Ports_Hist_trim < Graph_Parent # ports we don't know about get grouped together.
   NETWORK_MASK_BITS = 27
   GBYTES = 1073741824.0
   MAX_HOST_COUNT = 49
 
   def initialize(site_name, starttime, endtime, debug = false)
+    super
     @debug = debug
     @site_name = site_name
     @site_ip = IPSocket.getaddress(site_name)        # Change to site_name, as this becomes the site local network.

@@ -2,6 +2,7 @@ require 'open3'
 require 'socket'
 require_relative '../../ipv4.rb'
 
+# Generate Internal Hosts Usage Graph.
 class Gen_Table_Internal_Hosts
   NETWORK_MASK_BITS = 27
   GBYTES = 1073741824.0

@@ -77,32 +77,34 @@ class Preprocess
 
     @mysql_conf = WIKK::Configuration.new(MYSQL_CONF)
     WIKK::SQL.connect(@mysql_conf) do |my|
-      my.each_hash('select free_rate from plan where plan_id = -1') do |row|
+      my.each_hash('SELECT free_rate FROM plan WHERE plan_id = -1') do |row|
         # Free traffic rate, measured in bytes every 10s
         @interval_byte_count = (INTERVAL_BYTE_COUNT_100 * row['free_rate'].to_f).round
       end
 
       # Get the actual values
-      my.each_hash("select hostname, sum(bytes_in + bytes_out)/#{GBYTE} as gbytes" +
-                     'from log_summary ' +
-                     'where ' +
-                       "log_timestamp >= '#{@start_when.strftime('%Y-%m-%d %H:%M:%S')}' and " +
-                       "log_timestamp < '#{@stop_when.strftime('%Y-%m-%d %H:%M:%S')}'" +
-                     'group by hostname'
-                  ) do |row|
+      query = <<~SQL
+        SELECT hostname, sum(bytes_in + bytes_out)/#{GBYTE} AS gbytes
+        FROM log_summary
+        WHERE log_timestamp >= '#{@start_when.strftime('%Y-%m-%d %H:%M:%S')}'
+        AND log_timestamp < '#{@stop_when.strftime('%Y-%m-%d %H:%M:%S')}
+        GROUP BY hostname
+      SQL
+      my.each_hash(query) do |row|
         row['hostname'].capitalize! if row['hostname'] =~ /^link/
         sum_giga_bytes[row['hostname']] = [ row['gbytes'].to_f, 0.0 ] # Set the actual GB usage
       end
 
       # Get the values, above the threshold in each interval.
-      my.each_hash("select hostname, sum(bytes_in + bytes_out - #{@interval_byte_count})/#{GBYTE} as gbytes" +
-                     'from log_summary ' +
-                     'where ' +
-                       "log_timestamp >= '#{@start_when.strftime('%Y-%m-%d %H:%M:%S')}' and " +
-                       "log_timestamp < '#{@stop_when.strftime('%Y-%m-%d %H:%M:%S')}' and " +
-                       "(bytes_in + bytes_out) > #{@interval_byte_count} " +
-                     'group by hostname'
-                  ) do |row|
+      query2 = <<~SQL
+        SELECT hostname, sum(bytes_in + bytes_out - #{@interval_byte_count})/#{GBYTE} AS gbytes
+        FROM log_summary
+        WHERE log_timestamp >= '#{@start_when.strftime('%Y-%m-%d %H:%M:%S')}'
+        AND log_timestamp < '#{@stop_when.strftime('%Y-%m-%d %H:%M:%S')}'
+        AND (bytes_in + bytes_out) > #{@interval_byte_count}
+        GROUP BY hostname
+      SQL
+      my.each_hash(query2) do |row|
         row['hostname'].capitalize! if row['hostname'] =~ /^link/
         sum_giga_bytes[row['hostname']] ||= [ 0.0, 0.0 ]
         sum_giga_bytes[row['hostname']][1] = row['gbytes'].to_f # Set the GB usage above the interval threshold

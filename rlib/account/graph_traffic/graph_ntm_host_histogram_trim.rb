@@ -1,5 +1,7 @@
+# Use GnuPlot to create a host histogram
 class Graph_Host_Hist_trim < Graph_Parent
   def initialize(host, starttime, endtime)
+    super
     @host = host
     @start = starttime
     @end = endtime

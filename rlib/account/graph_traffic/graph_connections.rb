@@ -1,5 +1,7 @@
+# Graph a hosts Port and Protocol connections with Dot
 class Graph_Connections < Graph_Parent
   def initialize(host, starttime, endtime)
+    super
     @host = host
     @start = starttime
     @end = endtime

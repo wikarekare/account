@@ -2,6 +2,7 @@ class Graph_Total_Usage < Graph_Parent
   attr_reader :start_when, :stop_when, :title
 
   def initialize(mysql_conf, title = nil, start_when = nil, stop_when = nil)
+    super
     @mysql_conf = mysql_conf
     t = Time.now
     @images = ''

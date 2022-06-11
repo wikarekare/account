@@ -1,7 +1,9 @@
+# With data from the log_summary table, graph usage with  GnuPlot
 class Graph_Host_Usage < Graph_Parent
   attr_reader :start_when, :stop_when, :host
 
   def initialize(mysql_conf, host = nil, start_when = nil, stop_when = nil)
+    super
     @mysql_conf = mysql_conf
     t = Time.now
     @images = ''

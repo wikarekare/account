@@ -39,28 +39,25 @@ def cmp(a, b)
 end
 
 def fetch_site_plans
-  query = ~<SQL
-    SELECT site_name, plan_id, base_gb, extended_gb, base_price,
-           extended_unit_price, excess_unit_price
+  query = <<~SQL
+    SELECT site_name, plan_id, base_gb, extended_gb,
+            base_price, extended_unit_price, excess_unit_price
     FROM customer, plan
     WHERE customer.plan = plan.plan_id
   SQL
   site_plan = {}
   @mysql_conf = WIKK::Configuration.new(MYSQL_CONF)
   WIKK::SQL.connect(@mysql_conf) do |my|
-    my.each_hash(query)
-    if res != nil
-      res.each do |row|
-        # site_plan[site_name] =
-        site_plan[row['site_name']] = {
-          plan_id: row['plan_id'].to_i,
-          base_gb: row['base_gb'].to_i,
-          extended_gb: row['extended_gb'].to_i,
-          base_price: row['base_price'].to_f,
-          extended_unit_price: row['extended_unit_price'].to_f,
-          excess_unit_price: row['excess_unit_price'].to_f
-        }
-      end
+    my.each_hash(query) do |row|
+      # site_plan[site_name] =
+      site_plan[row['site_name']] = {
+        plan_id: row['plan_id'].to_i,
+        base_gb: row['base_gb'].to_i,
+        extended_gb: row['extended_gb'].to_i,
+        base_price: row['base_price'].to_f,
+        extended_unit_price: row['extended_unit_price'].to_f,
+        excess_unit_price: row['excess_unit_price'].to_f
+      }
     end
   end
   return site_plan
@@ -139,7 +136,7 @@ def transpose_and_sum(input, outfile_fd) # , plan_rates, minimum_charge = 5)
                     'extended GB', 'Extended Cost',
                     'Excess GB', 'Excess Cost',
                     'Total bill'
-                    ].join("\t")
+                  ].join("\t")
 
   output.each { |o| outfile_fd.puts o.join("\t") }
 

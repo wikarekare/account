@@ -1,0 +1,2 @@
+#!/bin/bash
+rsync -av --no-owner --include-from=manifest root@db2.wikarekare.org:/wikk/

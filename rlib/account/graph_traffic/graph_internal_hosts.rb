@@ -1,12 +1,15 @@
 require 'open3'
 require 'socket'
 require_relative '../../ipv4.rb'
+
+# With data from flow-tools, Graph a sites internal host traffic histogram with GnuPlot
 class Graph_Internal_Hosts < Graph_Parent
   NETWORK_MASK_BITS = 27
   GBYTES = 1073741824.0
   MAX_HOST_COUNT = 32 # Really 30 available addresses in local subnet
 
   def initialize(site_name, starttime, endtime, debug = false)
+    super
     @debug = debug
     @site_name = site_name
     @site_ip = IPSocket.getaddress(site_name)        # Change to site_name, as this becomes the site local network.
