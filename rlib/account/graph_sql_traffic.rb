@@ -5,7 +5,7 @@ require 'date'
 require 'time'
 require 'tmpfile'
 include TmpFileMod
-require_relative '../datetime_ext.rb'
+require_relative '../utility/datetime_ext.rb'
 
 # Uber class for common methods
 class Graph_Parent

@@ -1,6 +1,6 @@
 require 'open3'
 require 'socket'
-require_relative '../../ipv4.rb'
+require_relative '../../utility/ipv4.rb'
 
 # With data from flow-tools, Graph a sites internal host traffic histogram with GnuPlot
 class Graph_Internal_Hosts < Graph_Parent

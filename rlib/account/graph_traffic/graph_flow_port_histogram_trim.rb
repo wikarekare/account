@@ -1,6 +1,6 @@
 require 'open3'
 require 'socket'
-require_relative '../../ipv4.rb'
+require_relative '../../utility/ipv4.rb'
 
 # Use flow-tools to get connections and graph with GnuPlot
 class Graph_Flow_Ports_Hist_trim < Graph_Parent # ports we don't know about get grouped together.

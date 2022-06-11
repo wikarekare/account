@@ -1,6 +1,6 @@
 require 'open3'
 require 'socket'
-require_relative '../../ipv4.rb'
+require_relative '../../utility/ipv4.rb'
 
 # Generate Internal Hosts Usage Graph.
 class Gen_Table_Internal_Hosts
