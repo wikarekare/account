@@ -6,7 +6,7 @@ START_YEAR = 2006
 END_YEAR = 2030
 
 def output_leadin(fd, year, month)
-  fd.print <<-HTML
+  fd.print <<~HTML
     <html>
     <head>
     <title>Network Stats #{year}-#{'%02d' % month} </title>
@@ -29,7 +29,7 @@ def output_leadin(fd, year, month)
 end
 
 def output_year_selector(fd, year)
-  fd.print <<-HTML
+  fd.print <<~HTML
       <td>
         <select name="year">
   HTML
@@ -42,14 +42,14 @@ def output_year_selector(fd, year)
     end
   end
 
-  fd.print <<-HTML
+  fd.print <<~HTML
           </select>
         </td>
   HTML
 end
 
 def output_month_selector(fd, month)
-  fd.print <<-HTML
+  fd.print <<~HTML
       <td>
         <select name="month">
   HTML
@@ -62,14 +62,14 @@ def output_month_selector(fd, month)
     end
   end
 
-  fd.print <<-HTML
+  fd.print <<~HTML
         </select>
     </td>
   HTML
 end
 
 def output_trailer(fd, year, month)
-  fd.print <<-HTML
+  fd.print <<~HTML
         <td><input  type="button" value="Submit" onclick="javascript:doSubmit();"/></td>
       </tr>
     </table>

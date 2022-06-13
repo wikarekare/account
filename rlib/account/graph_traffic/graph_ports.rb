@@ -42,7 +42,7 @@ class Graph_Ports < Graph_Parent
                           end
     end
 
-    g = <<-EOF
+    g = <<~EOF
       graph g {
           ranksep=1.2;
          ratio=auto;
