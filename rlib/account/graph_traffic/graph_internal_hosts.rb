@@ -1,6 +1,6 @@
 require 'open3'
 require 'socket'
-require_relative '../../utility/ipv4.rb'
+require 'wikk_ipv4'
 
 # With data from flow-tools, Graph a sites internal host traffic histogram with GnuPlot
 class Graph_Internal_Hosts < Graph_Parent
@@ -13,7 +13,7 @@ class Graph_Internal_Hosts < Graph_Parent
     @debug = debug
     @site_name = site_name
     @site_ip = IPSocket.getaddress(site_name)        # Change to site_name, as this becomes the site local network.
-    @ip_net = IPV4.new(@site_ip, IPV4.maskbits_to_i(NETWORK_MASK_BITS))
+    @ip_net = WIKK::IPv4.new(@site_ip, WIKK::IPv4.maskbits_to_i(NETWORK_MASK_BITS))
     @start_time = starttime
     @end_time = endtime
 
@@ -146,7 +146,7 @@ class Graph_Internal_Hosts < Graph_Parent
   end
 
   private def local_address?(src_ip, dest_ip)
-    if IPV4.new(src_ip, IPV4.maskbits_to_i(NETWORK_MASK_BITS)).ip_address == @ip_net.ip_address
+    if WIKK::IPv4.new(src_ip, WIKK::IPv4.maskbits_to_i(NETWORK_MASK_BITS)).ip_address == @ip_net.ip_address
       return src_ip, true, dest_ip  # Outbound
     else
       return dest_ip, false, src_ip  # inbound

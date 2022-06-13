@@ -1,6 +1,6 @@
 require 'open3'
 require 'socket'
-require_relative '../../utility/ipv4.rb'
+require 'wikk_ipv4'
 
 # Use flowtools to gather connections and graph with GnuPlot
 class Graph_flow_Host_Hist_trim < Graph_Parent
@@ -13,7 +13,7 @@ class Graph_flow_Host_Hist_trim < Graph_Parent
     @debug = debug
     @site_name = site_name
     @site_ip = IPSocket.getaddress(site_name)        # Change to site_name, as this becomes the site local network.
-    @ip_net = IPV4.new(@site_ip, IPV4.maskbits_to_i(NETWORK_MASK_BITS))
+    @ip_net = WIKK::IPv4.new(@site_ip, WIKK::IPv4.maskbits_to_i(NETWORK_MASK_BITS))
     @start_time = starttime
     @end_time = endtime
 
@@ -145,7 +145,7 @@ class Graph_flow_Host_Hist_trim < Graph_Parent
   end
 
   private def remote_address?(src_ip, dest_ip)
-    if IPV4.new(src_ip, IPV4.maskbits_to_i(NETWORK_MASK_BITS)).ip_address == @ip_net.ip_address
+    if WIKK::IPv4.new(src_ip, WIKK::IPv4.maskbits_to_i(NETWORK_MASK_BITS)).ip_address == @ip_net.ip_address
       return dest_ip, true # Outbound
     else
       return src_ip, false # inbound
