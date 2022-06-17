@@ -1,0 +1,271 @@
+<html>
+<head>
+  <title>Assign Plan</title>
+  <script src="/js/jquery-3.0.0.min.js"></script>
+  <script src="/js/wikk_ajax-min.js"></script>
+  <script src="/js/wikk_web_auth-min.js"></script>
+  <script>
+    var data_packet = {
+      "plan": [
+         { "plan_id": "-1", "plan_name": "System", "base_gb": "0", "base_price": "0",
+           "extended_gb": "0", "extended_unit_price": "0", "excess_unit_price": "0", "free_rate": "0" }
+      ],
+      "site_plan": [
+        {"site_name": "wikk000", "plan": "0"}
+      ]
+    }
+
+    function del_rows(table_id) { //remove table body's rows
+        for(var i = table_id.rows.length; i > 0 ; i--) {
+          table_id.deleteRow(i-1);
+        }
+    }
+
+    function input_str(plan_index, id, text, size) {
+      return '<input type="text" id="' + id + plan_index + '" plan_index = "' + plan_index + '" field="' + id +'" onchange="plan_change(id);" size="' + size + '" value="' + text + '">';
+    }
+
+    function plan_value_change_callback(data) {   //Called when we get a response.
+    }
+    function plan_value_change_error(jqXHR, textStatus, errorMessage) {   //Called on failure
+    }
+    function plan_value_change_completion(data) {   //Called when everything completed, including callback.
+    }
+
+    function plan_change(id) {
+      var plan_row = document.getElementById(id);
+      if ( plan_row != null ) {
+        var plan_index = parseInt(plan_row.getAttribute('plan_index'), 10);
+        var field = plan_row.getAttribute('field');
+        var plan_id = data_packet.plan[plan_index].plan_id;
+        var set_hash = {};
+        set_hash[field] = plan_row.value;
+        data_packet.plan[plan_index][field] = plan_row.value;
+
+        var args = {
+          "method": "Plan.update",
+          "kwparams": {
+            "select_on": { "plan_id": plan_id },
+            "set": set_hash,
+            "result": []
+          },
+          "version": 1.1
+        }
+        url = "/ruby/rpc.rbx"
+        wikk_ajax.ajax_post_call(url, args, plan_value_change_callback, plan_value_change_error, plan_value_change_completion, 'json', true)
+      }
+    }
+
+    function create_plans_table(data) {
+      var the_table_head = document.getElementById('plans_table_head');
+      var the_table_body = document.getElementById('plans_table_body');
+      del_rows(the_table_body);
+
+      if(data != null) {
+        //Table body
+        for(var plan_index in data.plan) {
+          var row = the_table_body.insertRow(plan_index);
+          row.id = 'plan_' + data.plan[plan_index].plan_id
+          //<tr><th>Plan</th><th>Monthly</th><th>Base GB</th><th>Upto GB</th><th>$/GB</th><th>Excess $/GB</th></tr>
+          if( data.plan[plan_index].plan_id <= 0 ){
+            row.insertCell(0).innerHTML = data.plan[plan_index].plan_name;
+            row.insertCell(1).innerHTML = "$" + data.plan[plan_index].base_price;
+            row.insertCell(2).innerHTML = data.plan[plan_index].base_gb;
+            row.insertCell(3).innerHTML = "$" + data.plan[plan_index].extended_unit_price;
+            row.insertCell(4).innerHTML = data.plan[plan_index].extended_gb;
+            row.insertCell(5).innerHTML = "$" + data.plan[plan_index].excess_unit_price;
+            if(data.plan[plan_index].plan_id == -1) {
+              row.insertCell(6).innerHTML = input_str(plan_index, 'free_rate', data.plan[plan_index].free_rate, 6);
+            } else {
+              row.insertCell(6).innerHTML =  "&nbsp;";
+            }
+          } else {
+            row.insertCell(0).innerHTML = input_str(plan_index, 'plan_name', data.plan[plan_index].plan_name, 32);
+            row.insertCell(1).innerHTML = "$" + input_str(plan_index, 'base_price', data.plan[plan_index].base_price, 6);
+            row.insertCell(2).innerHTML = input_str(plan_index, 'base_gb', data.plan[plan_index].base_gb, 6);
+            row.insertCell(3).innerHTML = "$" + input_str(plan_index, 'extended_unit_price', data.plan[plan_index].extended_unit_price, 6);
+            row.insertCell(4).innerHTML = input_str(plan_index, 'extended_gb', data.plan[plan_index].extended_gb, 6);
+            row.insertCell(5).innerHTML = "$" + input_str(plan_index, 'excess_unit_price', data.plan[plan_index].excess_unit_price, 6);
+            row.insertCell(6).innerHTML =  "&nbsp;";
+          }
+        }
+      }
+    }
+
+    function create_customer_table(data) {
+      var the_table_head = document.getElementById('plan_table_head');
+      var the_table_body = document.getElementById('plan_table_body');
+      del_rows(the_table_head);
+      del_rows(the_table_body);
+
+      if(data != null) {
+        //Table Head
+        var hrow = the_table_head.insertRow(0);
+        hrow.insertCell(0).innerHTML = "Site Name";
+        for(var plan = 0; plan < data.plan.length ; plan++) {
+          hrow.insertCell(plan + 1).innerHTML = data.plan[plan].plan_name;
+        }
+
+        //Table body
+        for(var site in data.site_plan) {
+          var row = the_table_body.insertRow(site);
+          row.insertCell(0).innerHTML = data.site_plan[site].site_name;
+
+          for(var plan = 0; plan < data.plan.length ; plan++) {
+            var s = "<input type='radio' name='" + data.site_plan[site].site_name + "'" + " id='" + data.site_plan[site].site_name + "_" + plan +"' value='" + data.plan[plan].plan_id  + "'" + ((data.site_plan[site].plan == data.plan[plan].plan_id) ? "checked = 'checked'" : "") + " onclick='site_value_changed(this);' />";
+            row.insertCell(plan + 1).innerHTML = s;
+          }
+        }
+      }
+    }
+
+    function site_value_change_callback(data) {   //Called when we get a response.
+    }
+    function site_value_change_error(jqXHR, textStatus, errorMessage) {   //Called on failure
+    }
+    function site_value_change_completion(data) {   //Called when everything completed, including callback.
+    }
+
+    function site_value_changed(site_input) {
+      //alert(site_input.name + " " + site_input.value);
+      for(var site in data_packet.site_plan) {
+        if(site_input.name == data_packet.site_plan[site].site_name && site_input.value != data_packet.site_plan[site].plan) {
+          if( site_input.value == -1 || data_packet.site_plan[site].plan == -1 ) {
+            //Can't change to or from plan -1
+            for(var plan = 0; plan < data_packet.plan.length ; plan++) {
+              var radio_button = document.getElementById(site_input.name + '_' + plan)
+              if( radio_button.value == data_packet.site_plan[site].plan ) {
+                site_input.checked = false;
+                radio_button.checked = true;
+                return false;
+              }
+            }
+            return false;
+          } else {
+            data_packet.site_plan[site].plan = site_input.value;
+            //alert("Changed " + site_input.name + " to plan " + site_input.value);
+            var args = {
+              "method": "Customer.update",
+              "kwparams": {
+                "select_on": { "site_name": site_input.name },
+                "set": { "plan": site_input.value },
+                "result": []
+              },
+              "version": 1.1
+            }
+            url = "/ruby/rpc.rbx"
+            wikk_ajax.ajax_post_call(url, args, site_value_change_callback, site_value_change_error, site_value_change_completion, 'json', true)
+          }
+        }
+      }
+      return false;
+    }
+
+    function get_customers_callback(data) {   //Called when we get a response.
+      if(data != null && data.result != null) {
+        data_packet.site_plan = [];
+        for(d = 0; d < data.result.affected_rows; d++) {
+          data_packet.site_plan[d] = {};
+          data_packet.site_plan[d]["site_name"] = data.result.rows[d].site_name;
+          data_packet.site_plan[d]["plan"] = data.result.rows[d].plan;
+        }
+        create_customer_table(data_packet);
+      }
+    }
+    function get_customers_error(jqXHR, textStatus, errorMessage) {   //Called on failure
+    }
+    function get_customers_completion(data) {   //Called when everything completed, including callback.
+      get_customers(1800000);
+    }
+
+    function get_customers(delay) {
+      var args = {
+        "method": "Customer.read",
+        "kwparams": {
+          "select_on": { "active": "1" }, //every active site
+          "order_by": ['site_name'],
+          "set": { }, //no fields to update in a GET
+          "result": ["site_name", "plan"]
+        },
+        "version": 1.1
+      }
+      url = "/ruby/rpc.rbx"
+      wikk_ajax.delayed_ajax_post_call(url, args, get_customers_callback, get_customers_error, get_customers_completion, 'json', true, delay)
+      return false;
+    }
+
+    function get_plan_callback(data) {   //Called when we get a response.
+      if(data != null && data.result != null) {
+        data_packet.plan = [];
+        for(d = 0; d < data.result.affected_rows; d++) {
+          //alert(data.result.rows[d].plan_id)
+          data_packet.plan[d] = { "plan_id": data.result.rows[d].plan_id,
+                                  "base_gb": data.result.rows[d].base_gb,
+                                  "plan_name": data.result.rows[d].plan_name,
+                                  "extended_gb": data.result.rows[d].extended_gb,
+                                  "base_price": data.result.rows[d].base_price,
+                                  "extended_unit_price": data.result.rows[d].extended_unit_price,
+                                  "excess_unit_price": data.result.rows[d].excess_unit_price,
+                                  "free_rate": data.result.rows[d].free_rate
+                                 } ;
+        }
+        create_plans_table(data_packet);
+      }
+    }
+    function get_plan_error(jqXHR, textStatus, errorMessage) {   //Called on failure
+      alert("get_plan_error: " + errorMessage)
+    }
+    function get_plan_completion(data) {   //Called when everything completed, including callback.
+      get_customers(0);
+    }
+
+    function get_plans(delay) {
+      //alert(site_input.name + " " + site_input.value);
+      var args = {
+        "method": "Plan.read",
+        "kwparams": {
+          "select_on": {}, //every plan
+          "order_by": [],
+          "set": { }, //no fields to update in a GET
+          "result": ["plan_id", "base_gb", "plan_name", "extended_gb", "base_price", "extended_unit_price", "excess_unit_price", "free_rate"]
+        },
+        "version": 1.1
+      }
+      url = "/ruby/rpc.rbx"
+      wikk_ajax.delayed_ajax_post_call(url, args, get_plan_callback, get_plan_error, get_plan_completion, 'json', true, delay)
+    }
+
+    function login_callback() {
+      get_plans(0);
+    }
+
+    function init() {
+      //(display lock/unlock image only)
+      wikk_web_auth.logged_in(true, "/admin/plan.html", "login_span", login_callback)
+    }
+  </script>
+</head>
+<body onload="init()">
+  <span id="login_span"></span> <br>
+  <table id="plans" border="1">
+    <thead id="plans_table_head">
+      <tr> <th>Plan</th> <th>Monthly</th> <th>Base GB</th> <th>$/GB</th> <th>Upto GB</th> <th>Excess $/GB</th> <th>Free Rate Mb/s</th></tr>
+    </thead>
+    <tbody id="plans_table_body">
+      <tr> <th>System</th><td>$0</td><td>0</td><td>$0</td><td>0</td><td>$0</td><td>0</td></tr>
+    </tbody>
+  </table>
+  <table id="plan_table" border="1">
+    <thead id="plan_table_head">
+      <tr><th>Site Name</th><th>30</th><th>40</th></tr>
+    </thead>
+    <tbody id="plan_table_body">
+      <tr>
+        <th>wikk000</th>
+        <td><input type="radio" name="wikk000" value="0" checked="checked"/></td>
+        <td><input type="radio" name="wikk000" value="1"/></td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>
