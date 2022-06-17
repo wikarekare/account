@@ -16,15 +16,15 @@ class Graph_Total_Usage < Graph_Parent
     temp_filename_base = "#{TMP_DIR}/#{NETSTAT_DIR}/totals_#{t.tv_sec}#{t.tv_usec}"
     @tmp_stats_file = temp_filename_base + '.txt'
     @gplot_filename = temp_filename_base + '.plot'
-    TmpFile.open(@gplot_filename, 'w') do |plot_fd|
+    TmpFileMod::TmpFile.open(@gplot_filename, 'w') do |plot_fd|
       # plot_fd.no_unlink
-      TmpFile.open(@tmp_stats_file, 'w') do |txt_fd|
+      TmpFileMod::TmpFile.open(@tmp_stats_file, 'w') do |txt_fd|
         # txt_fd.no_unlink
         fetch_data(txt_fd)
         gen_graph_instructions(plot_fd)
         plot_fd.flush
         txt_fd.flush
-        TmpFile.exec(GNUPLOT, @gplot_filename)
+        TmpFileMod::TmpFile.exec(GNUPLOT, @gplot_filename)
       end
     end
 

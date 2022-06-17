@@ -4,7 +4,6 @@ require 'pp'
 require 'date'
 require 'time'
 require 'tmpfile'
-include TmpFileMod
 require_relative '../utility/datetime_ext.rb'
 
 # Uber class for common methods

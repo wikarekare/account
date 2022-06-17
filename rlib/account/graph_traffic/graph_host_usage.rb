@@ -17,15 +17,15 @@ class Graph_Host_Usage < Graph_Parent
     temp_filename_base = "#{TMP_DIR}/#{NETSTAT_DIR}/totals_#{t.tv_sec}#{t.tv_usec}"
     @tmp_stats_file = temp_filename_base + '.txt'
     @gplot_filename = temp_filename_base + '.plot'
-    TmpFile.open(@gplot_filename, 'w') do |plot_fd|
+    TmpFileMod::TmpFile.open(@gplot_filename, 'w') do |plot_fd|
       # plot_fd.no_unlink
-      TmpFile.open(@tmp_stats_file, 'w') do |txt_fd|
+      TmpFileMod::TmpFile.open(@tmp_stats_file, 'w') do |txt_fd|
         # txt_fd.no_unlink
         fetch_data(txt_fd)
         gen_graph_instructions(plot_fd)
         plot_fd.flush
         txt_fd.flush
-        TmpFile.exec(GNUPLOT, @gplot_filename)
+        TmpFileMod::TmpFile.exec(GNUPLOT, @gplot_filename)
       end
     end
 
@@ -65,7 +65,7 @@ class Graph_Host_Usage < Graph_Parent
   end
 
   private def gen_graph_instructions(fd)
-    fd.print <<~EOF
+    fd.print <<~GNUPLOT
       set output "#{WWW_DIR}/#{NETSTAT_DIR}/tmp/#{@image_file}"
       datafile = '#{@tmp_stats_file}'
       set datafile separator '\\t'
@@ -84,6 +84,6 @@ class Graph_Host_Usage < Graph_Parent
       set xlabel "Date"  offset character 0, 0, 0 font "" textcolor lt -1 norotate
       set ylabel "Giga Bytes"  offset character 0, 0, 0 font "" textcolor lt -1 rotate by 90
       plot datafile using 1:2 title 'in' lw 2 lc rgb "red",  datafile using 1:3 title 'out' pt 7 ps 0.5 lw 1 lc rgb "forest-green",  datafile using 1:4 title 'total' pt 1 lw 1 lc rgb "blue"
-    EOF
+    GNUPLOT
   end
 end

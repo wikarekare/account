@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 . /wikk/etc/wikk.conf
 
 ${SBIN_DIR}/account/graphLastMonth.sh

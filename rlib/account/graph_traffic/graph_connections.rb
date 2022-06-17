@@ -45,13 +45,13 @@ class Graph_Connections < Graph_Parent
       end
     end
 
-    g = <<~EOF
+    g = <<~GNUPLOT
       graph g {
           ranksep=5.2;
          ratio=auto;
          root="#{target}"
         "#{target}" [ shape=ellipse, style=filled, fillcolor=blue ];
-    EOF
+    GNUPLOT
     hosts.sort.each do |h, _value|
       g << "\"#{h}\" [ shape=ellipse, style=filled, fillcolor=orange ];\n"
       g << "\"#{target}\" -- \"#{h}\" [len=2.5];\n"
@@ -80,7 +80,7 @@ class Graph_Connections < Graph_Parent
     File.open(temp_filename_dot, 'w') do |plot_fd|
       plot_fd.print gen_dot
       plot_fd.flush
-      TmpFile.exec(NEATO, '-Tpng', '-o', image_filename, temp_filename_dot)
+      TmpFileMod::TmpFile.exec(NEATO, '-Tpng', '-o', image_filename, temp_filename_dot)
     end
 
     @images = "<p><img src=\"/#{NETSTAT_DIR}/tmp/#{@host}_connections.png?start_time=#{@start.xmlschema}&end_time=#{@end.xmlschema}\" width=\"90%\"></p>\n"

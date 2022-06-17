@@ -42,14 +42,14 @@ class Graph_Ports < Graph_Parent
                           end
     end
 
-    g = <<~EOF
+    g = <<~GNUPLOT
       graph g {
           ranksep=1.2;
          ratio=auto;
          root="#{target}"
          overlap=scale;
         "#{target}" [ shape=ellipse, style=filled, fillcolor=blue ];
-    EOF
+    GNUPLOT
     i = 1
     ports.sort.each do |p, value|
       g << "\"#{i}\" [ label=\"#{p}\", style=filled, fillcolor=#{port_color(p)}];\n"
@@ -67,10 +67,10 @@ class Graph_Ports < Graph_Parent
     image_filename = "#{WWW_DIR}/#{NETSTAT_DIR}/tmp/#{@host}_ports.png"
     temp_filename_base = "#{TMP_DIR}/#{NETSTAT_DIR}/#{@host}_n#{t.tv_sec}#{t.tv_usec}"
     temp_filename_dot = temp_filename_base + '.dot'
-    TmpFile.open(temp_filename_dot, 'w') do |plot_fd|
+    TmpFileMod::TmpFile.open(temp_filename_dot, 'w') do |plot_fd|
       plot_fd.print gen_dot
       plot_fd.flush
-      TmpFile.exec(TWOPI, '-Tpng', '-o', image_filename, temp_filename_dot)
+      TmpFileMod::TmpFile.exec(TWOPI, '-Tpng', '-o', image_filename, temp_filename_dot)
     end
 
     @images = "<p><img src=\"/#{NETSTAT_DIR}/tmp/#{@host}_ports.png?start_time=#{@start.xmlschema}&end_time=#{@end.xmlschema}\" width=\"90%\"></p>\n"

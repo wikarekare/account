@@ -1,4 +1,4 @@
-#!/usr/local/ruby3.0/bin/ruby
+#!/usr/local/bin/ruby
 # take the comment line as the key to the column names
 # output the datetime first
 # output the total

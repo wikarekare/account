@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 . /wikk/etc/wikk.conf
 
 #Link Balance
@@ -6,7 +6,7 @@
 theDay=`date "+%d"`
 accountDate=`date "+%Y-%m-01 00:00:00"`
 
-${SBIN_DIR}/account/sqlplot_rate.rb --start_when="${accountDate}" ${TMP_PLOT_DIR}/usage_asofnow.plot ${TMP_PLOT_DIR}/wikkpT3D.png > ${TMP_PLOT_DIR}/1s.plot 
+${SBIN_DIR}/account/sqlplot_rate.rb --start_when="${accountDate}" ${TMP_PLOT_DIR}/usage_asofnow.plot ${TMP_PLOT_DIR}/wikkpT3D.png > ${TMP_PLOT_DIR}/1s.plot
 ${GNUPLOT} < ${TMP_PLOT_DIR}/1s.plot
 
 ${SBIN_DIR}/account/transpose_and_sum_rate.rb ${TMP_PLOT_DIR}/wikkpT3D_excel.txt ${TMP_PLOT_DIR}/bill_asofnow.tsv

@@ -38,9 +38,9 @@ class Graph_Host_Hist_trim < Graph_Parent
     temp_filename_base = "#{TMP_DIR}/#{NETSTAT_DIR}/#{@host}_h#{t.tv_sec}#{t.tv_usec}"
     @temp_filename_gnuplot = temp_filename_base + '.plot'
     @temp_filename_dat = temp_filename_base + '.dat'
-    TmpFile.open(@temp_filename_gnuplot, 'w') do |fd_plot|
+    TmpFileMod::TmpFile.open(@temp_filename_gnuplot, 'w') do |fd_plot|
       # fd_plot.no_unlink  #Comment out if not debugging
-      TmpFile.open(@temp_filename_dat, 'w') do |fd_dat|
+      TmpFileMod::TmpFile.open(@temp_filename_dat, 'w') do |fd_dat|
         # fd_dat.no_unlink  #Comment out if not debugging
         gen_gnu_plot_datafile
         print_gnuplot_dataheader fd_dat
@@ -52,7 +52,7 @@ class Graph_Host_Hist_trim < Graph_Parent
         fd_plot.flush
 
         @images = "<p><img src=\"/#{NETSTAT_DIR}/tmp/#{@host}_hosts2.png?start_time=#{@start.xmlschema}&end_time=#{@end.xmlschema}\" width=\"90%\"></p>\n"
-        TmpFile.exec(GNUPLOT, @temp_filename_gnuplot)
+        TmpFileMod::TmpFile.exec(GNUPLOT, @temp_filename_gnuplot)
       end
     end
   end

@@ -30,9 +30,9 @@ class Graph_Host_Hist < Graph_Parent
     temp_filename_base = "#{TMP_DIR}/#{NETSTAT_DIR}/#{@host}_h#{t.tv_sec}#{t.tv_usec}"
     @temp_filename_gnuplot = temp_filename_base + '.plot'
     @temp_filename_dat = temp_filename_base + '.dat'
-    TmpFile.open(@temp_filename_gnuplot, 'w') do |fd_plot|
+    TmpFileMod::TmpFile.open(@temp_filename_gnuplot, 'w') do |fd_plot|
       # fd_plot.no_unlink  #Comment out if not debugging
-      TmpFile.open(@temp_filename_dat, 'w') do |fd_dat|
+      TmpFileMod::TmpFile.open(@temp_filename_dat, 'w') do |fd_dat|
         # fd_dat.no_unlink  #Comment out if not debugging
         gen_gnu_plot_datafile
         print_gnuplot_dataheader fd_dat
@@ -44,7 +44,7 @@ class Graph_Host_Hist < Graph_Parent
         fd_plot.flush
 
         @images = "<p><img src=\"/#{NETSTAT_DIR}/tmp/#{@host}_hosts2.png?start_time=#{@start.xmlschema}&end_time=#{@end.xmlschema}\" width=\"90%\"></p>\n"
-        TmpFile.exec(GNUPLOT, @temp_filename_gnuplot)
+        TmpFileMod::TmpFile.exec(GNUPLOT, @temp_filename_gnuplot)
       end
     end
   end
@@ -98,7 +98,7 @@ class Graph_Host_Hist < Graph_Parent
   end
 
   def print_gnuplot_cmds(fd_out)
-    fd_out.print <<~EOF
+    fd_out.print <<~GNUPLOT
       set terminal pngcairo  transparent enhanced font "Monoco,14" fontscale 1.0 size 1500, 750
       set output '#{@image_filename}'
       #set boxwidth 0.75 absolute
@@ -116,7 +116,7 @@ class Graph_Host_Hist < Graph_Parent
       set grid ytics mytics linetype 1 linetype 0 linewidth 1
       set yrange [0:*]
       set ytics nomirror
-    EOF
+    GNUPLOT
     if @start
       if @stop
         fd_out.print "set title \"Top 50 Hosts Usage for #{@host} #{@start.strftime('%Y-%m-%d')} to #{@stop.strftime('%Y-%m-%d')} (#{Time.new})\"  offset character 0, 0, 0 font \"\" norotate\n"
@@ -126,11 +126,11 @@ class Graph_Host_Hist < Graph_Parent
     else
       fd_out.print "set title \"Top 50 Hosts Usage for #{@host} (#{Time.new})\"  offset character 0, 0, 0 font \"\" norotate\n"
     end
-    fd_out.print <<~EOF
+    fd_out.print <<~GNUPLOT
       set xlabel "Hosts"  offset character 0, 0, 0 font "" textcolor lt -1 norotate
       set ylabel "Giga Bytes"  offset character 0, 0, 0 font "" textcolor lt -1 rotate by 90
       set colorbox vertical origin screen 0.9, 0.2, 0 size screen 0.05, 0.6, 0 bdefault
-    EOF
+    GNUPLOT
 
     fd_out.print "plot '#{@temp_filename_dat}' "
     (@key_by_index.length - 2).times { |x| fd_out.print " using #{x + 2} ti col, '' " }

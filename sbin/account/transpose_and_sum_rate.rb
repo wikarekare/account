@@ -1,4 +1,4 @@
-#!/usr/local/ruby3.0/bin/ruby
+#!/usr/local/bin/ruby
 require 'wikk_sql'
 require 'wikk_configuration'
 RLIB = '../../rlib'

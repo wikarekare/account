@@ -105,15 +105,15 @@ class Graph_2D < Graph_Parent
     temp_filename_txt = temp_filename_base + '.txt'
     temp_filename_plot = temp_filename_base + '.plot'
 
-    TmpFile.open(temp_filename_txt, 'w') do |txt_fd|
+    TmpFileMod::TmpFile.open(temp_filename_txt, 'w') do |txt_fd|
       # txt_fd.no_unlink; #uncomment for testing, so we can see what was produced.
-      TmpFile.open(temp_filename_plot, 'w') do |plot_fd|
+      TmpFileMod::TmpFile.open(temp_filename_plot, 'w') do |plot_fd|
         # plot_fd.no_unlink  #uncomment for testing, so we can see what was produced.
         y_max = fetch_data(txt_fd, host, start_time, end_time, split_in_out)
         gen_graph_instructions(plot_fd, split_in_out, temp_filename_txt, host, start_time, end_time, y_max)
         plot_fd.flush
         txt_fd.flush
-        TmpFile.exec(GNUPLOT, temp_filename_plot )
+        TmpFileMod::TmpFile.exec(GNUPLOT, temp_filename_plot )
       end
     end
   end

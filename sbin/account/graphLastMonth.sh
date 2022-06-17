@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 . /wikk/etc/wikk.conf
 
 LOCK_PID_FILE=${TMP_DIR}/graphLastMonth.lock
