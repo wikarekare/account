@@ -47,8 +47,8 @@ def fetch_site_plans
   SQL
   site_plan = {}
   @mysql_conf = WIKK::Configuration.new(MYSQL_CONF)
-  WIKK::SQL.connect(@mysql_conf) do |my|
-    my.each_hash(query) do |row|
+  WIKK::SQL.connect(@mysql_conf) do |sql|
+    sql.each_hash(query) do |row|
       # site_plan[site_name] =
       site_plan[row['site_name']] = {
         plan_id: row['plan_id'].to_i,

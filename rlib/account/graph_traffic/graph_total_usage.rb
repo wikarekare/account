@@ -32,7 +32,7 @@ class Graph_Total_Usage < Graph_Parent
   end
 
   private def fetch_data(txt_fd)
-    WIKK::SQL.connect(@mysql_conf) do |my|
+    WIKK::SQL.connect(@mysql_conf) do |sql|
       query = <<~SQL
         SELECT hostname, sum(bytes_in)/1073741824.0 as b_in, sum(bytes_out)/1073741824.0 AS b_out
         FROM log_summary
@@ -52,7 +52,7 @@ class Graph_Total_Usage < Graph_Parent
         @key_by_index << "Link#{i}"
       end
 
-      my.each_hash(query) do |row|
+      sql.each_hash(query) do |row|
         case row['hostname']
         when 'link1'
           @sum_in[2] = row['b_in'].to_f

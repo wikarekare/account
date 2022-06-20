@@ -14,7 +14,7 @@ class Graph_2D < Graph_Parent
   def self.graph_all(mysql_conf, split_in_out, start_time, end_time)
     images = Graph_2D.new(mysql_conf, 'Total', split_in_out, start_time, end_time).images
 
-    WIKK::SQL.connect(mysql_conf) do |my|
+    WIKK::SQL.connect(mysql_conf) do |sql|
       # Get list of active links from backbone table.
       query = <<~SQL
         SELECT site_name
@@ -23,7 +23,7 @@ class Graph_2D < Graph_Parent
         AND active = 1
         ORDER BY site_name
       SQL
-      my.each_hash(query) do |row|
+      sql.each_hash(query) do |row|
         url = "/admin/traffic.html?host=#{row['site_name']}&graphtype=dist&start=#{start_time.strftime('%Y-%m-%d %H:%M:%S')}&end_time=#{end_time.strftime('%Y-%m-%d %H:%M:%S')}"
         images += Graph_2D.new(mysql_conf, row['site_name'], split_in_out, start_time, end_time, url).images
       end
@@ -34,7 +34,7 @@ class Graph_2D < Graph_Parent
         WHERE distribution.active = 1
         ORDER BY site_name
       SQL
-      my.each_hash(query) do |row|
+      sql.each_hash(query) do |row|
         url = "/admin/traffic.html?host=#{row['site_name']}&graphtype=dist&start=#{start_time.strftime('%Y-%m-%d %H:%M:%S')}&end_time=#{end_time.strftime('%Y-%m-%d %H:%M:%S')}"
         images += Graph_2D.new(mysql_conf, row['hostname'], split_in_out, start_time, end_time, url).images
       end
@@ -44,7 +44,7 @@ class Graph_2D < Graph_Parent
 
   def self.graph_border(mysql_conf, split_in_out, start_time, end_time)
     images = Graph_2D.new(mysql_conf, 'Total', split_in_out, start_time, end_time).images
-    WIKK::SQL.connect(mysql_conf) do |_my|
+    WIKK::SQL.connect(mysql_conf) do |sql|
       # Get list of active links from backbone table.
       query = <<~SQL
         SELECT site_name
@@ -53,7 +53,7 @@ class Graph_2D < Graph_Parent
         AND active = 1
         ORDER BY site_name
       SQL
-      res.each_hash(query) do |row|
+      sql.each_hash(query) do |row|
         url = "/admin/traffic.html?host=#{row['site_name']}&graphtype=dist&start=#{start_time.strftime('%Y-%m-%d %H:%M:%S')}&end_time=#{end_time.strftime('%Y-%m-%d %H:%M:%S')}"
         images += Graph_2D.new(mysql_conf, row['site_name'], split_in_out, start_time, end_time, url).images
       end
@@ -63,7 +63,7 @@ class Graph_2D < Graph_Parent
 
   def self.graph_clients(mysql_conf, dist_host, split_in_out, start_time, end_time)
     images = ''
-    WIKK::SQL.connect(mysql_conf) do |my|
+    WIKK::SQL.connect(mysql_conf) do |sql|
       query <<~SQL
         SELECT customer.site_name AS wikk
         FROM distribution, customer, customer_distribution
@@ -72,7 +72,7 @@ class Graph_2D < Graph_Parent
         AND customer_distribution.customer_id = customer.customer_id
         ORDER BY wikk
       SQL
-      my.each_hash(query) do |row|
+      sql.each_hash(query) do |row|
         url = "/admin/ping.html?host=#{row['wikk']}&start=#{start_time.strftime('%Y-%m-%d %H:%M:%S')}&end_time=#{end_time.strftime('%Y-%m-%d %H:%M:%S')}"
         images += Graph_2D.new(mysql_conf, row['wikk'], split_in_out, start_time, end_time, url ).images
       end
@@ -84,14 +84,14 @@ class Graph_2D < Graph_Parent
   def self.graph_link(mysql_conf, link, split_in_out, start_time, end_time)
     link_number = link[-1, 1].to_i # Last digit.
     images = ''
-    WIKK::SQL.connect(mysql_conf) do |my|
+    WIKK::SQL.connect(mysql_conf) do |sql|
       query = <<~SQL
         SELECT customer.site_name AS wikk
         FROM customer
         WHERE link = #{link_number}
         ORDER BY wikk"
       SQL
-      my.each_hash(query) do |row|
+      sql.each_hash(query) do |row|
         url = "/admin/ping.html?host=#{row['wikk']}&start=#{start_time.strftime('%Y-%m-%d %H:%M:%S')}&end_time=#{end_time.strftime('%Y-%m-%d %H:%M:%S')}"
         images += Graph_2D.new(mysql_conf, row['wikk'], split_in_out, start_time, end_time, url ).images
       end
@@ -161,7 +161,7 @@ class Graph_2D < Graph_Parent
   private def fetch_data(fd, host, start_time, end_time, split_in_out)
     y_max = [ 16.0, 1.0 ]
 
-    WIKK::SQL.connect(@mysql_conf) do |my|
+    WIKK::SQL.connect(@mysql_conf) do |_sql|
       query = if host == 'Total'
                 <<~SQL
                   SELECT log_timestamp, sum(bytes_in)/(1024*1024.0) AS b_in, sum(bytes_in + bytes_out)/(1024*1024.0) AS b_out
@@ -178,7 +178,7 @@ class Graph_2D < Graph_Parent
                   FROM log_summary, distribution, customer, customer_distribution
                   WHERE log_timestamp >= '#{start_time.to_sql}'
                   AND log_timestamp <= '#{end_time.to_sql}'
-                  AND distribution.site_name = '#{my.escape_string(host)}'
+                  AND distribution.site_name = '#{WIKK::SQL.escape(host)}'
                   AND  distribution.distribution_id = customer_distribution.distribution_id
                   AND customer_distribution.customer_id = customer.customer_id
                   AND customer.site_name = log_summary.hostname
@@ -189,13 +189,13 @@ class Graph_2D < Graph_Parent
                 <<~SQL
                   SELECT log_timestamp, bytes_in/(1024*1024.0) AS b_in, (bytes_in + bytes_out)/(1024*1024.0) AS b_out
                   FROM log_summary
-                  WHERE hostname = '#{my.escape_string(host)}'
+                  WHERE hostname = '#{WIKK::SQL.escape(host)}'
                   AND log_timestamp >= '#{start_time.to_sql}'
                   AND log_timestamp <= '#{end_time.to_sql}'
                   ORDER BY log_timestamp
                 SQL
               end
-      my.each_hash(query) do |row|
+      sql.each_hash(query) do |row|
         if split_in_out
           y_max[0] = row['b_in'].to_f if row['b_in'].to_f > y_max[0] # in bytes
           y_max[1] = (row['b_out'].to_f - row['b_in'].to_f) if (row['b_out'].to_f - row['b_in'].to_f) > y_max[1] # out bytes

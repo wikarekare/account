@@ -76,8 +76,10 @@ class Preprocess
     end
 
     @mysql_conf = WIKK::Configuration.new(MYSQL_CONF)
-    WIKK::SQL.connect(@mysql_conf) do |my|
-      my.each_hash('SELECT free_rate FROM plan WHERE plan_id = -1') do |row|
+    WIKK::SQL.connect(@mysql_conf) do |sql|
+      sql.each_hash <<~SQL do |row|
+        SELECT free_rate FROM plan WHERE plan_id = -1
+      SQL
         # Free traffic rate, measured in bytes every 10s
         @interval_byte_count = (INTERVAL_BYTE_COUNT_100 * row['free_rate'].to_f).round
       end
@@ -90,7 +92,7 @@ class Preprocess
         AND log_timestamp < '#{@stop_when.strftime('%Y-%m-%d %H:%M:%S')}
         GROUP BY hostname
       SQL
-      my.each_hash(query) do |row|
+      sql.each_hash(query) do |row|
         row['hostname'].capitalize! if row['hostname'] =~ /^link/
         sum_giga_bytes[row['hostname']] = [ row['gbytes'].to_f, 0.0 ] # Set the actual GB usage
       end
@@ -104,7 +106,7 @@ class Preprocess
         AND (bytes_in + bytes_out) > #{@interval_byte_count}
         GROUP BY hostname
       SQL
-      my.each_hash(query2) do |row|
+      sql.each_hash(query2) do |row|
         row['hostname'].capitalize! if row['hostname'] =~ /^link/
         sum_giga_bytes[row['hostname']] ||= [ 0.0, 0.0 ]
         sum_giga_bytes[row['hostname']][1] = row['gbytes'].to_f # Set the GB usage above the interval threshold

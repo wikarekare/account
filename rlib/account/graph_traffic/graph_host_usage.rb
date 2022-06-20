@@ -41,7 +41,7 @@ class Graph_Host_Usage < Graph_Parent
   end
 
   private def fetch_data(txt_fd)
-    WIKK::SQL.connect(@mysql_conf) do |my|
+    WIKK::SQL.connect(@mysql_conf) do |sql|
       query = <<~SQL
         SELECT  log_timestamp, bytes_in/1073741824.0 AS b_in, bytes_out/1073741824.0 AS b_out
         FROM log_summary
@@ -56,7 +56,7 @@ class Graph_Host_Usage < Graph_Parent
       in_sum = 0.0
       out_sum = 0.0
 
-      my.each_hash(query) do |row|
+      sql.each_hash(query) do |row|
         in_sum += row['b_in'].to_f
         out_sum += row['b_out'].to_f
         txt_fd.puts "#{row['log_timestamp']}\t#{in_sum}\t#{out_sum}\t#{in_sum + out_sum}\n"

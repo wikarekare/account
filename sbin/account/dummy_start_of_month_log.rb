@@ -6,7 +6,7 @@ RLIB = '../../rlib'
 require_relative "#{RLIB}/wikk_conf.rb"
 
 @mysql_conf = WIKK::Configuration.new(MYSQL_CONF)
-WIKK::SQL.connect(mysql_conf) do |my|
+WIKK::SQL.connect(mysql_conf) do |sql|
   query = <<~SQL
     INSERT INTO log_summary (bytes_in , bytes_out , hostname  , log_timestamp )
       SELECT 0.0,0.0,site_name, '#{Time.now.strftime('%Y-%m-%d')} 00:00:01'
@@ -16,5 +16,5 @@ WIKK::SQL.connect(mysql_conf) do |my|
     ON DUPLICATE KEY UPDATE log_timestamp = log_timestamp, hostname=hostname
   SQL
   # puts query
-  my.query(query)
+  sql.query(query)
 end

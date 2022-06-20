@@ -6,7 +6,7 @@ class Graph_3D < Graph_Parent
     @mysql_conf = mysql_conf
     @images = ''
     hosts = [ 'Total' ]
-    WIKK::SQL.connect(@mysql_conf) do |my|
+    WIKK::SQL.connect(@mysql_conf) do |sql|
       query = if dist_host == 'all' || dist_host == 'dist'
                 if links == true || dist_host == 'dist' # Transition. Will remove links test
                   # Get list of active links from backbone table.
@@ -40,7 +40,7 @@ class Graph_3D < Graph_Parent
                 SQL
               end
 
-      my.each_hash(query) do |row|
+      sql.each_hash(query) do |row|
         hosts << row['wikk']
       end
 
@@ -73,7 +73,7 @@ class Graph_3D < Graph_Parent
       g.hosts = [ host ]
       return g
     end
-    WIKK::SQL.connect(mysql_conf) do |my|
+    WIKK::SQL.connect(mysql_conf) do |_my|
       query = <<~SQL
         ( SELECT distribution.site_name AS site
           FROM distribution, customer, customer_distribution
@@ -89,7 +89,7 @@ class Graph_3D < Graph_Parent
         LIMIT 1
       SQL
 
-      my.each_hash(query) do |row|
+      sql.each_hash(query) do |row|
         parent = row['site']
         g = Graph_3D.new(mysql_conf, parent, links, start_time, end_time)
         g.hosts = [ parent ]
@@ -159,7 +159,7 @@ class Graph_3D < Graph_Parent
   # @param end_time [Time] specify to when
   private def fetch_data(fd, dist_host, links, hosts, start_time, end_time)
     z_max = 35.0 # Default maximum z value for plot graph. Might grow, but wont reduce.
-    WIKK::SQL.connect(@mysql_conf) do |my|
+    WIKK::SQL.connect(@mysql_conf) do |sql|
       query = if dist_host == 'all' || dist_host == 'dist'
                 if links == true || dist_host == 'dist' # summarize by distribution tower.
                   # Query traffic logs, grouping clients by distribution tower
@@ -239,7 +239,7 @@ class Graph_3D < Graph_Parent
 
       line = Array.new(hosts.length * 2 + 1, '-') # init to no data. '-' indicates no data, and gets overwriten if we get data
       total_in = total_in_out = 0.0 # Totals for this time stamp
-      my.each_hash(query) do |row| # Process each traffic log row returned from the query above.
+      sql.each_hash(query) do |row| # Process each traffic log row returned from the query above.
         next if row['site'] == 'TERMINATED'
         raise "Unexpected host: #{row['site']} not in #{hosts.join(',')}" if hostmap[row['site']].nil?
 
