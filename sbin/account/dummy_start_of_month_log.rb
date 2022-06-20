@@ -5,6 +5,8 @@ require 'wikk_configuration'
 RLIB = '../../rlib'
 require_relative "#{RLIB}/wikk_conf.rb"
 
+# For each customer site
+# Insert a start of month marker record into the log_summary table
 @mysql_conf = WIKK::Configuration.new(MYSQL_CONF)
 WIKK::SQL.connect(mysql_conf) do |sql|
   query = <<~SQL
