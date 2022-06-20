@@ -89,11 +89,10 @@ class Graph_3D < Graph_Parent
         LIMIT 1
       SQL
 
-      sql.each_hash(query) do |row|
-        parent = row['site']
-        g = Graph_3D.new(mysql_conf, parent, links, start_time, end_time)
-        g.hosts = [ parent ]
-      end
+      res = sql.query_hash(query)
+      parent = res.first['site']
+      g = Graph_3D.new(mysql_conf, parent, links, start_time, end_time)
+      g.hosts = [ parent ]
       return g
     end
     raise("No Host #{host}")

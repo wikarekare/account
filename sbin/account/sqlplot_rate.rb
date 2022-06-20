@@ -77,12 +77,11 @@ class Preprocess
 
     @mysql_conf = WIKK::Configuration.new(MYSQL_CONF)
     WIKK::SQL.connect(@mysql_conf) do |sql|
-      sql.each_hash <<~SQL do |row|
+      res = sql.query_hash <<~SQL
         SELECT free_rate FROM plan WHERE plan_id = -1
       SQL
-        # Free traffic rate, measured in bytes every 10s
-        @interval_byte_count = (INTERVAL_BYTE_COUNT_100 * row['free_rate'].to_f).round
-      end
+      # Free traffic rate, measured in bytes every 10s
+      @interval_byte_count = (INTERVAL_BYTE_COUNT_100 * res.first['free_rate'].to_f).round
 
       # Get the actual values
       query = <<~SQL
