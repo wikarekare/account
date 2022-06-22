@@ -2,7 +2,7 @@
 require 'wikk_sql'
 require 'time'
 require 'wikk_configuration'
-RLIB = '../../rlib'
+RLIB = '/wikk/rlib'
 require_relative "#{RLIB}/wikk_conf.rb"
 
 # For each customer site

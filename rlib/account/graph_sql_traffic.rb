@@ -4,7 +4,8 @@ require 'pp'
 require 'date'
 require 'time'
 require 'tmpfile'
-require_relative '../utility/datetime_ext.rb'
+RLIB = '/wikk/rlib'
+require_relative "#{RLIB}/utility/datetime_ext.rb"
 
 # Uber class for common methods
 class Graph_Parent
