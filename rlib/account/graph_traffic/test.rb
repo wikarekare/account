@@ -1,5 +1,7 @@
 #!/usr/local/bin/ruby
-require '/wikk/rlib/wikk_conf.rb'
+RLIB = '/wikk/rlib'
+
+require "#{RLIB}/wikk_conf.rb"
 require_relative '../graph_sql_traffic.rb'
 
 # Graph_flow_Host_Hist_trim.debug('wikk046', Time.parse('2016-02-01 00:00:00'), Time.parse('2016-03-01 00:00:00'))

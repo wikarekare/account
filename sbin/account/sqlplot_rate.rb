@@ -13,7 +13,7 @@ require 'pp'
 require 'time'
 
 require 'wikk_configuration'
-RLIB = '../../rlib'
+RLIB = '/wikk/rlib'
 require_relative "#{RLIB}/wikk_conf.rb"
 
 class Preprocess
