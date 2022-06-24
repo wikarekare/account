@@ -4,7 +4,7 @@ require 'pp'
 require 'date'
 require 'time'
 require 'tmpfile'
-RLIB = '/wikk/rlib'
+RLIB = '/wikk/rlib' unless defined? RLIB
 require_relative "#{RLIB}/utility/datetime_ext.rb"
 
 # Uber class for common methods

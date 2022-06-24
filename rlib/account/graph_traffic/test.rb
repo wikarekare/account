@@ -1,5 +1,5 @@
 #!/usr/local/bin/ruby
-RLIB = '/wikk/rlib'
+RLIB = '/wikk/rlib' unless defined? RLIB
 
 require "#{RLIB}/wikk_conf.rb"
 require_relative "#{RLIB}/account/graph_sql_traffic.rb"
