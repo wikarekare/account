@@ -24,6 +24,11 @@ class Gen_Table_Internal_Hosts
     gen_gnu_output
   end
 
+  def self.debug(site_name, start_time, end_time)
+    gfh = Graph_flow_Host_Hist_trim.new(site_name, start_time, end_time, true) # True indicates debug on.
+    puts "images=#{gfh.images}"
+  end
+
   private def gen_gnu_output
     @image_filename = "#{WWW_DIR}/#{NETSTAT_DIR}/tmp/#{@site_name}_hosts2.png"
     system "rm -f #{@image_filename}"
@@ -174,10 +179,5 @@ class Gen_Table_Internal_Hosts
         @sum_in << v[1].to_f / GBYTES
       end
     end
-  end
-
-  def self.debug(site_name, start_time, end_time)
-    gfh = Graph_flow_Host_Hist_trim.new(site_name, start_time, end_time, true) # True indicates debug on.
-    puts "images=#{gfh.images}"
   end
 end
