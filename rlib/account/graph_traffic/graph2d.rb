@@ -161,7 +161,7 @@ class Graph_2D < Graph_Parent
   private def fetch_data(fd, host, start_time, end_time, split_in_out)
     y_max = [ 16.0, 1.0 ]
 
-    WIKK::SQL.connect(@mysql_conf) do |_sql|
+    WIKK::SQL.connect(@mysql_conf) do |sql|
       query = if host == 'Total'
                 <<~SQL
                   SELECT log_timestamp, sum(bytes_in)/(1024*1024.0) AS b_in, sum(bytes_in + bytes_out)/(1024*1024.0) AS b_out

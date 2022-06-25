@@ -73,7 +73,7 @@ class Graph_3D < Graph_Parent
       g.hosts = [ host ]
       return g
     end
-    WIKK::SQL.connect(mysql_conf) do |_my|
+    WIKK::SQL.connect(mysql_conf) do |sql|
       query = <<~SQL
         ( SELECT distribution.site_name AS site
           FROM distribution, customer, customer_distribution
