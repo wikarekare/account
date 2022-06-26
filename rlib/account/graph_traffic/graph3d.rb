@@ -166,8 +166,8 @@ class Graph_3D < Graph_Parent
                   <<~SQL
                     ( SELECT log_timestamp,
                             distribution.site_name AS site,
-                            sum(bytes_in)/(1024*1024.0) as b_in,
-                            sum(bytes_in + bytes_out)/(1024*1024.0) as total
+                            sum(bytes_in)/(1024*1024.0) AS b_in,
+                            sum(bytes_in + bytes_out)/(1024*1024.0) AS total
                       FROM log_summary, distribution, customer, customer_distribution
                       WHERE log_timestamp >= '#{start_time.to_sql}'
                       AND log_timestamp <= '#{end_time.to_sql}'
@@ -185,8 +185,8 @@ class Graph_3D < Graph_Parent
                       WHERE log_timestamp >= '#{start_time.to_sql}'
                       AND log_timestamp <= '#{end_time.to_sql}'
                       AND hostname LIKE 'link%'
-                      ORDER BY log_timestamp, site'
                     )
+                    ORDER BY log_timestamp, site
                   SQL
                 else
                   # Query traffic logs by client site_name.
