@@ -11,7 +11,7 @@ class Graph_Parent
   attr_reader :images
   attr_accessor :debug
 
-  def initialize
+  def initialize(*_args)
     @debug = false ######
     @images = ''
   end
