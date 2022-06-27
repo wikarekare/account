@@ -5,11 +5,19 @@ LOCK_PID_FILE=${TMP_DIR}/graphLastMonth.lock
 ${LOCKFILE} ${LOCK_PID_FILE} $$
 if [ $? != 0 ] ; then  exit 0 ; fi
 
-year1=`date -v "-1m" "+%Y"`
-month1=`date -v "-1m" "+%m"`
+if [ "${OSTYPE}" = "FreeBSD" ] ; then
+  year1=`date -v "-1m" "+%Y"`
+  month1=`date -v "-1m" "+%m"`
 
-year2=`date -v "-2m" "+%Y"`
-month2=`date -v "-2m" "+%m"`
+  year2=`date -v "-2m" "+%Y"`
+  month2=`date -v "-2m" "+%m"`
+else
+  year1=`date "+%Y" -d "1 month ago"`
+  month1=`date "+%m" -d "1 month ago"`
+
+  year2=`date "+%Y" -d "2 month ago"`
+  month2=`date "+%m" -d "2 month ago"`
+fi
 
 #Shuffle the html files, so they point to the newest last two months
 ${RM} -f ${WWW_DIR}/netstat/lastmonth.html
