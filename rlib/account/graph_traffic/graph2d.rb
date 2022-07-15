@@ -64,7 +64,7 @@ class Graph_2D < Graph_Parent
   def self.graph_clients(mysql_conf, dist_host, split_in_out, start_time, end_time)
     images = ''
     WIKK::SQL.connect(mysql_conf) do |sql|
-      query <<~SQL
+      query = <<~SQL
         SELECT customer.site_name AS wikk
         FROM distribution, customer, customer_distribution
         WHERE distribution.site_name = '#{dist_host}'
