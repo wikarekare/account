@@ -202,7 +202,7 @@ class Graph_2D < Graph_Parent
         elsif row['b_out'].to_f > y_max[0]
           y_max[0] = row['b_out'].to_f
         end
-        fd.puts row.join("\t")
+        fd.puts "#{row['log_timestamp']}\t#{row['b_in']}\t#{row['b_out']}"
       end
     end
     return y_max
