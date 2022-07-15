@@ -36,7 +36,7 @@ class Graph_2D < Graph_Parent
       SQL
       sql.each_hash(query) do |row|
         url = "/admin/traffic.html?host=#{row['site_name']}&graphtype=dist&start=#{start_time.strftime('%Y-%m-%d %H:%M:%S')}&end_time=#{end_time.strftime('%Y-%m-%d %H:%M:%S')}"
-        images += Graph_2D.new(mysql_conf, row['hostname'], split_in_out, start_time, end_time, url).images
+        images += Graph_2D.new(mysql_conf, row['site_name'], split_in_out, start_time, end_time, url).images
       end
     end
     return images
