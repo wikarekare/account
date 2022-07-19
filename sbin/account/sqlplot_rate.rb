@@ -88,7 +88,7 @@ class Preprocess
         SELECT hostname, sum(bytes_in + bytes_out)/#{GBYTE} AS gbytes
         FROM log_summary
         WHERE log_timestamp >= '#{@start_when.strftime('%Y-%m-%d %H:%M:%S')}'
-        AND log_timestamp < '#{@stop_when.strftime('%Y-%m-%d %H:%M:%S')}
+        AND log_timestamp < '#{@stop_when.strftime('%Y-%m-%d %H:%M:%S')}'
         GROUP BY hostname
       SQL
       sql.each_hash(query) do |row|
