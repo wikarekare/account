@@ -36,7 +36,7 @@ class Graph_2D < Graph_Parent
       SQL
       sql.each_hash(query) do |row|
         url = "/admin/traffic.html?host=#{row['site_name']}&graphtype=dist&start=#{start_time.strftime('%Y-%m-%d %H:%M:%S')}&end_time=#{end_time.strftime('%Y-%m-%d %H:%M:%S')}"
-        images += Graph_2D.new(mysql_conf, row['hostname'], split_in_out, start_time, end_time, url).images
+        images += Graph_2D.new(mysql_conf, row['site_name'], split_in_out, start_time, end_time, url).images
       end
     end
     return images
@@ -64,7 +64,7 @@ class Graph_2D < Graph_Parent
   def self.graph_clients(mysql_conf, dist_host, split_in_out, start_time, end_time)
     images = ''
     WIKK::SQL.connect(mysql_conf) do |sql|
-      query <<~SQL
+      query = <<~SQL
         SELECT customer.site_name AS wikk
         FROM distribution, customer, customer_distribution
         WHERE distribution.site_name = '#{dist_host}'
@@ -202,7 +202,7 @@ class Graph_2D < Graph_Parent
         elsif row['b_out'].to_f > y_max[0]
           y_max[0] = row['b_out'].to_f
         end
-        fd.puts row.join("\t")
+        fd.puts "#{row['log_timestamp']}\t#{row['b_in']}\t#{row['b_out']}"
       end
     end
     return y_max
