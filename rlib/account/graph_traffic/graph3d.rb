@@ -150,6 +150,81 @@ class Graph_3D < Graph_Parent
     fd.puts line.join("\t")
   end
 
+  # MariaDB is currently really slow, if the log_summary
+  # table is joined with another table (mysql 5.7 wasn't)
+  # Doing two queries, and the join in code, is hundreds of times faster
+  def fetch_dist_data(dist_site, links, start_time, end_time)
+    link_query = <<~SQL
+      SELECT site_name FROM line WHERE active=1 ORDER BY site_name
+    SQL
+    dist_query = if dist_site == 'all' || dist_site == 'dist'
+                   links = true
+                   <<~SQL
+                     SELECT d.site_name AS dist_site, c.site_name AS cust_site
+                     FROM distribution AS d
+                     JOIN customer_distribution USING (distribution_id)
+                     JOIN customer AS c USING (customer_id)
+                     WHERE d.active = 1
+                     AND c.active = 1
+                   SQL
+                 else
+                   <<~SQL
+                     SELECT d.site_name AS dist_site, c.site_name AS cust_site
+                     FROM distribution AS d
+                     JOIN customer_distribution USING (distribution_id)
+                     JOIN customer AS c USING (customer_id)
+                     WHERE d.site_name = '#{dist_site}'
+                     AND c.active=1
+                   SQL
+                 end
+    log_query = <<~SQL
+      SELECT log_timestamp, hostname, bytes_in, bytes_out
+      FROM log_summary
+      WHERE log_timestamp >= '#{start_time.to_sql}'
+      AND log_timestamp <= '#{end_time.to_sql}'
+      ORDER BY log_timestamp
+    SQL
+    WIKK::SQL.connect(@mysql_conf) do |sql|
+      dist_sites = {}
+      if links
+        # Get the active line names
+        sql.each_hash(link_query) do |row|
+          dist_sites[row['site_name']] = row['site_name']
+        end
+      end
+
+      # Get the customer site names associate with each distribution site
+      sql.each_hash(dist_query) do |row|
+        dist_sites[row['cust_site']] = row['dist_site']
+      end
+
+      # Get the log data, for the period, along with the site_names
+      result = {}
+      sql.each_hash(log_query) do |row|
+        result[row['log_timestamp']] ||= {}
+        dist_site = dist_sites[row['hostname']]
+        next if dist_site.nil?
+
+        result[row['log_timestamp']][dist_site] ||= [ 0, 0 ]
+        result[row['log_timestamp']][dist_site][0] += row['bytes_in']
+        result[row['log_timestamp']][dist_site][1] += row['bytes_out']
+      end
+
+      result.each do |timestamp, dist_records|
+        dist_records.each do |dist_site, traffic|
+          row = {
+            'log_timestamp' => timestamp,
+            'site' => dist_site,
+            'b_in' => traffic[0] / (1024 * 1024.0),
+            'b_out' => traffic[1] / (1024 * 1024.0),
+            'total' => (traffic[0] + traffic[1]) / (1024 * 1024.0)
+          }
+          yield row
+        end
+      end
+    end
+  end
+
   # Retrieve traffic for either a list of towers, or a list of sites.
   # @param dist_host [String] all, if every tower
   # @param links [Boolean] true, if provided with list of towers
@@ -158,7 +233,8 @@ class Graph_3D < Graph_Parent
   # @param end_time [Time] specify to when
   private def fetch_data(fd, dist_host, links, hosts, start_time, end_time)
     z_max = 35.0 # Default maximum z value for plot graph. Might grow, but wont reduce.
-    WIKK::SQL.connect(@mysql_conf) do |sql|
+    # WIKK::SQL.connect(@mysql_conf) do |sql|
+    begin
       query = if dist_host == 'all' || dist_host == 'dist'
                 if links == true || dist_host == 'dist' # summarize by distribution tower.
                   # Query traffic logs, grouping clients by distribution tower
@@ -238,7 +314,8 @@ class Graph_3D < Graph_Parent
 
       line = Array.new(hosts.length * 2 + 1, '-') # init to no data. '-' indicates no data, and gets overwriten if we get data
       total_in = total_in_out = 0.0 # Totals for this time stamp
-      sql.each_hash(query) do |row| # Process each traffic log row returned from the query above.
+      fetch_dist_data(dist_host, links, start_time, end_time) do |row|
+        # sql.each_hash(query) do |row| # Process each traffic log row returned from the query above.
         next if row['site'] == 'TERMINATED'
         raise "Unexpected host: #{row['site']} not in #{hosts.join(',')}" if hostmap[row['site']].nil?
 
