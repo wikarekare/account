@@ -257,8 +257,7 @@ class Graph_3D < Graph_Parent
     line = Array.new(hosts.length * 2 + 1, '-') # init to no data. '-' indicates no data, and gets overwriten if we get data
     total_in = total_in_out = 0.0 # Totals for this time stamp
     fetch_log_summary_data(dist_host, links, start_time, end_time) do |row|
-      next if row['site'] == 'TERMINATED'
-      raise "Unexpected host: #{row['site']} not in #{hosts.join(',')}" if hostmap[row['site']].nil?
+      next if row['site'] == 'TERMINATED' || hostmap[row['site']].nil?
 
       if line[0] == '-' # Starting a new line
         line[0] = row['log_timestamp']  # Record the timestamp, so we know when we get a new one
