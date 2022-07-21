@@ -178,7 +178,11 @@ class Graph_3D < Graph_Parent
         # Get the customer site names associate with each distribution site
         # These are many:1 mappings
         sql.each_hash(dist_query) do |row|
-          dist_sites[row['cust_site']] = row['dist_site']
+          dist_sites[row['cust_site']] = if dist_site == 'all'
+                                           row['cust_site']
+                                         else # Consoladate by Distribution Site
+                                           row['dist_site']
+                                         end
         end
       else
         dist_query = <<~SQL
