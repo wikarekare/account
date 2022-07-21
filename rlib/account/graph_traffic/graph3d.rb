@@ -153,7 +153,7 @@ class Graph_3D < Graph_Parent
   # MariaDB is currently really slow, if the log_summary
   # table is joined with another table (mysql 5.7 wasn't)
   # Doing two queries, and the join in code, is hundreds of times faster
-  def fetch_dist_data(dist_site, links, start_time, end_time)
+  def fetch_log_summary_data(dist_site, links, start_time, end_time)
     link_query = <<~SQL
       SELECT site_name FROM line WHERE active=1 ORDER BY site_name
     SQL
@@ -211,7 +211,7 @@ class Graph_3D < Graph_Parent
       end
 
       result.each do |timestamp, dist_records|
-        dist_records.each do |dist_site, traffic|
+        dist_records.each do |dist_site, traffic| # rubocop:disable Lint/ShadowingOuterLocalVariable
           row = {
             'log_timestamp' => timestamp,
             'site' => dist_site,
@@ -233,112 +233,46 @@ class Graph_3D < Graph_Parent
   # @param end_time [Time] specify to when
   private def fetch_data(fd, dist_host, links, hosts, start_time, end_time)
     z_max = 35.0 # Default maximum z value for plot graph. Might grow, but wont reduce.
-    # WIKK::SQL.connect(@mysql_conf) do |sql|
-    begin
-      query = if dist_host == 'all' || dist_host == 'dist'
-                if links == true || dist_host == 'dist' # summarize by distribution tower.
-                  # Query traffic logs, grouping clients by distribution tower
-                  # And query traffic log entries by link, adding to previous query
-                  <<~SQL
-                    ( SELECT log_timestamp,
-                            distribution.site_name AS site,
-                            sum(bytes_in)/(1024*1024.0) AS b_in,
-                            sum(bytes_in + bytes_out)/(1024*1024.0) AS total
-                      FROM log_summary, distribution, customer, customer_distribution
-                      WHERE log_timestamp >= '#{start_time.to_sql}'
-                      AND log_timestamp <= '#{end_time.to_sql}'
-                      AND distribution.distribution_id = customer_distribution.distribution_id
-                      AND customer_distribution.customer_id = customer.customer_id
-                      AND customer.site_name = log_summary.hostname
-                      GROUP BY log_timestamp, distribution.site_name
-                    )
-                    UNION
-                    ( SELECT log_timestamp,
-                            hostname AS site,
-                            bytes_in/(1024*1024.0) AS b_in,
-                            (bytes_in + bytes_out)/(1024*1024.0) AS total
-                      FROM log_summary
-                      WHERE log_timestamp >= '#{start_time.to_sql}'
-                      AND log_timestamp <= '#{end_time.to_sql}'
-                      AND hostname LIKE 'link%'
-                    )
-                    ORDER BY log_timestamp, site
-                  SQL
-                else
-                  # Query traffic logs by client site_name.
-                  <<~SQL
-                    SELECT log_timestamp,
-                            hostname AS site,
-                            bytes_in/(1024*1024.0) AS b_in,
-                            (bytes_in + bytes_out)/(1024*1024.0) AS total
-                    FROM log_summary, distribution, customer, customer_distribution
-                    WHERE log_timestamp >= '#{start_time.to_sql}'
-                    AND log_timestamp <= '#{end_time.to_sql}'
-                    AND distribution.distribution_id = customer_distribution.distribution_id
-                    AND customer_distribution.customer_id = customer.customer_id
-                    AND customer.site_name = log_summary.hostname
-                    ORDER BY log_timestamp, site
-                  SQL
-                end
-              else
-                # Query traffic logs, for a specific distribution tower's clients
-                <<~SQL
-                  SELECT log_timestamp,
-                          hostname as site,
-                          bytes_in/(1024*1024.0) AS b_in,
-                          (bytes_in + bytes_out)/(1024*1024.0) AS total
-                  FROM log_summary, distribution, customer, customer_distribution
-                  WHERE log_timestamp >= '#{start_time.to_sql}'
-                  AND log_timestamp <= '#{end_time.to_sql}'
-                  AND distribution.site_name = '#{dist_host}'
-                  AND distribution.distribution_id = customer_distribution.distribution_id
-                  AND customer_distribution.customer_id = customer.customer_id
-                  AND customer.site_name = log_summary.hostname
-                  ORDER BY log_timestamp,site
-                SQL
-              end
 
-      # Set up references, by site_name, using a hash to the array of hosts
-      hostmap = {}
-      hosts.each_with_index do |h, i|
-        hostmap[h] = i + 1
-      end
-
-      # Graph Title
-      fd.print "\#Clients connected to #{dist_host}\n\#datetime\t#{hosts.join("\t")}\t#{hosts.join("\t")}\n"
-      fd.print "#{(start_time - 1).strftime('%Y-%m-%d %H:%M:%S')}"
-
-      # first line has 0.0 entries.
-      (1..hosts.length).each { |_h| fd.print "\t0.0\t0.0" }
-      fd.print "\n"
-
-      line = Array.new(hosts.length * 2 + 1, '-') # init to no data. '-' indicates no data, and gets overwriten if we get data
-      total_in = total_in_out = 0.0 # Totals for this time stamp
-      fetch_dist_data(dist_host, links, start_time, end_time) do |row|
-        # sql.each_hash(query) do |row| # Process each traffic log row returned from the query above.
-        next if row['site'] == 'TERMINATED'
-        raise "Unexpected host: #{row['site']} not in #{hosts.join(',')}" if hostmap[row['site']].nil?
-
-        if line[0] == '-' # Starting a new line
-          line[0] = row['log_timestamp']  # Record the timestamp, so we know when we get a new one
-          total_in = total_in_out = 0.0 # Totals for this time stamp
-        elsif line[0] != row['log_timestamp'] # Got a new timestamp, so dump stats to plot file, and reset.
-          print_hosts_line(fd, line, total_in, total_in_out) # Output last record for gnuplot to use later on.
-          line.collect! { '-' } # Reset to no data. '-' indicates no data, and gets overwriten if we get data
-          line[0] = row['log_timestamp'] # Record the timestamp, so we know when we get a new one
-          total_in = total_in_out = 0.0 # Reset Total for this time stamp
-        end
-        # Processing log entries for this time stamp.
-        line[hostmap[row['site']]] = row['b_in'] # in
-        line[hostmap[row['site']] + hosts.length] = row['total'] # in + out
-        next unless row['site'] !~ /^link/ # Not traffic summarized by link, so add to in/out totals for this timestamp.
-
-        total_in += row['b_in'].to_f
-        total_in_out += row['total'].to_f
-        z_max = total_in_out if total_in_out > z_max # Recording the maximum value seen for sizing plot scale
-      end
-      print_hosts_line(fd, line, total_in, total_in_out) if line[0] != '-' # Catch all, for the last line.
+    # Set up references, by site_name, using a hash to the array of hosts
+    hostmap = {}
+    hosts.each_with_index do |h, i|
+      hostmap[h] = i + 1
     end
+
+    # Graph Title
+    fd.print "\#Clients connected to #{dist_host}\n\#datetime\t#{hosts.join("\t")}\t#{hosts.join("\t")}\n"
+    fd.print "#{(start_time - 1).strftime('%Y-%m-%d %H:%M:%S')}"
+
+    # first line has 0.0 entries.
+    hosts.length.times { fd.print "\t0.0\t0.0" }
+    fd.print "\n"
+
+    line = Array.new(hosts.length * 2 + 1, '-') # init to no data. '-' indicates no data, and gets overwriten if we get data
+    total_in = total_in_out = 0.0 # Totals for this time stamp
+    fetch_log_summary_data(dist_host, links, start_time, end_time) do |row|
+      next if row['site'] == 'TERMINATED'
+      raise "Unexpected host: #{row['site']} not in #{hosts.join(',')}" if hostmap[row['site']].nil?
+
+      if line[0] == '-' # Starting a new line
+        line[0] = row['log_timestamp']  # Record the timestamp, so we know when we get a new one
+        total_in = total_in_out = 0.0 # Totals for this time stamp
+      elsif line[0] != row['log_timestamp'] # Got a new timestamp, so dump stats to plot file, and reset.
+        print_hosts_line(fd, line, total_in, total_in_out) # Output last record for gnuplot to use later on.
+        line.collect! { '-' } # Reset to no data. '-' indicates no data, and gets overwriten if we get data
+        line[0] = row['log_timestamp'] # Record the timestamp, so we know when we get a new one
+        total_in = total_in_out = 0.0 # Reset Total for this time stamp
+      end
+      # Processing log entries for this time stamp.
+      line[hostmap[row['site']]] = row['b_in'] # in
+      line[hostmap[row['site']] + hosts.length] = row['total'] # in + out
+      next unless row['site'] !~ /^link/ # Not traffic summarized by link, so add to in/out totals for this timestamp.
+
+      total_in += row['b_in']
+      total_in_out += row['total']
+      z_max = total_in_out if total_in_out > z_max # Recording the maximum value seen for sizing plot scale
+    end
+    print_hosts_line(fd, line, total_in, total_in_out) if line[0] != '-' # Catch all, for the last line.
     return z_max # Return maximum z value seen, so plot scale can be set (mostly ignore this now)
   end
 end

@@ -158,52 +158,103 @@ class Graph_2D < Graph_Parent
     end
   end
 
+  # MariaDB is currently really slow, if the log_summary
+  # table is joined with another table (mysql 5.7 wasn't)
+  # Doing two queries, and the join in code, is hundreds of times faster
+  def fetch_log_summary_data(host, start_time, end_time, &block)
+    case host
+    when 'Total'
+      # Just the Links. One result per time slot, to get the total
+      link_query = <<~SQL
+        SELECT log_timestamp,
+               sum(bytes_in)/(1024*1024.0) AS b_in,
+               sum(bytes_in + bytes_out)/(1024*1024.0) AS total
+        FROM log_summary
+        WHERE log_timestamp >= '#{start_time.to_sql}'
+        AND log_timestamp <= '#{end_time.to_sql}'
+        AND hostname like 'link%'
+        GROUP BY log_timestamp
+        ORDER BY log_timestamp
+      SQL
+      WIKK::SQL.connect(@mysql_conf) do |sql|
+        sql.each_hash(link_query, &block)
+      end
+    when /^wikk/, /^link/, /^admin[12]/
+      # Specific site.
+      site_query = <<~SQL
+        SELECT log_timestamp,
+              bytes_in/(1024*1024.0) AS b_in,
+              (bytes_in + bytes_out)/(1024*1024.0) AS total
+        FROM log_summary
+        WHERE hostname = '#{WIKK::SQL.escape(host)}'
+        AND log_timestamp >= '#{start_time.to_sql}'
+        AND log_timestamp <= '#{end_time.to_sql}'
+        ORDER BY log_timestamp
+      SQL
+      WIKK::SQL.connect(@mysql_conf) do |sql|
+        sql.each_hash(site_query, &block)
+      end
+    else
+      # A specific distribution site.
+      # Due to slow MariaDB Joins on the Log_summary table
+      # We do the join in code
+      dist_query = <<~SQL
+        SELECT c.site_name AS cust_site
+        FROM distribution AS d
+        JOIN customer_distribution USING (distribution_id)
+        JOIN customer AS c USING (customer_id)
+        WHERE d.site_name = '#{host}'
+        AND c.active=1
+      SQL
+      log_query = <<~SQL
+        SELECT log_timestamp, hostname, bytes_in, bytes_out
+        FROM log_summary
+        WHERE log_timestamp >= '#{start_time.to_sql}'
+        AND log_timestamp <= '#{end_time.to_sql}'
+        ORDER BY log_timestamp
+      SQL
+
+      WIKK::SQL.connect(@mysql_conf) do |sql|
+        cust_sites = {}
+        # Get the customer site names associate with the distribution site
+        sql.each_hash(dist_query) do |row|
+          cust_sites[row['cust_site']] = true
+        end
+
+        # Get the log data, for the period, along with the site_names
+        result = {}
+        sql.each_hash(log_query) do |row|
+          next if cust_sites[row['hostname']].nil?
+
+          result[row['log_timestamp']] ||= [ 0, 0 ]
+          result[row['log_timestamp']][0] += row['bytes_in']
+          result[row['log_timestamp']][1] += row['bytes_out']
+        end
+
+        # Yield row at a time
+        result.each do |timestamp, traffic|
+          row = {
+            'log_timestamp' => timestamp,
+            'b_in' => traffic[0] / (1024 * 1024.0),
+            'b_out' => traffic[1] / (1024 * 1024.0),
+            'total' => (traffic[0] + traffic[1]) / (1024 * 1024.0)
+          }
+          yield row
+        end
+      end
+    end
+  end
+
   private def fetch_data(fd, host, start_time, end_time, split_in_out)
     y_max = [ 16.0, 1.0 ]
-
-    WIKK::SQL.connect(@mysql_conf) do |sql|
-      query = if host == 'Total'
-                <<~SQL
-                  SELECT log_timestamp, sum(bytes_in)/(1024*1024.0) AS b_in, sum(bytes_in + bytes_out)/(1024*1024.0) AS b_out
-                  FROM log_summary
-                  WHERE log_timestamp >= '#{start_time.to_sql}'
-                  AND log_timestamp <= '#{end_time.to_sql}'
-                  AND hostname like 'link%'
-                  GROUP BY log_timestamp
-                  ORDER BY log_timestamp
-                SQL
-              elsif host !~ /^wikk/ && host !~ /^link/ && host !~ /^admin[12]/ # The consolidated traffic of each distribution site.
-                <<~SQL
-                  SELECT log_timestamp, sum(bytes_in)/(1024*1024.0) AS b_in, sum(bytes_in + bytes_out)/(1024*1024.0) AS b_out
-                  FROM log_summary, distribution, customer, customer_distribution
-                  WHERE log_timestamp >= '#{start_time.to_sql}'
-                  AND log_timestamp <= '#{end_time.to_sql}'
-                  AND distribution.site_name = '#{WIKK::SQL.escape(host)}'
-                  AND  distribution.distribution_id = customer_distribution.distribution_id
-                  AND customer_distribution.customer_id = customer.customer_id
-                  AND customer.site_name = log_summary.hostname
-                  GROUP BY log_timestamp
-                  ORDER BY log_timestamp
-                SQL
-              else # Regular wikk hosts, the links and admin1 & 2
-                <<~SQL
-                  SELECT log_timestamp, bytes_in/(1024*1024.0) AS b_in, (bytes_in + bytes_out)/(1024*1024.0) AS b_out
-                  FROM log_summary
-                  WHERE hostname = '#{WIKK::SQL.escape(host)}'
-                  AND log_timestamp >= '#{start_time.to_sql}'
-                  AND log_timestamp <= '#{end_time.to_sql}'
-                  ORDER BY log_timestamp
-                SQL
-              end
-      sql.each_hash(query) do |row|
-        if split_in_out
-          y_max[0] = row['b_in'].to_f if row['b_in'].to_f > y_max[0] # in bytes
-          y_max[1] = (row['b_out'].to_f - row['b_in'].to_f) if (row['b_out'].to_f - row['b_in'].to_f) > y_max[1] # out bytes
-        elsif row['b_out'].to_f > y_max[0]
-          y_max[0] = row['b_out'].to_f
-        end
-        fd.puts "#{row['log_timestamp']}\t#{row['b_in']}\t#{row['b_out']}"
+    fetch_log_summary_data(host, start_time, end_time) do |row|
+      if split_in_out
+        y_max[0] = row['b_in'] if row['b_in'] > y_max[0] # in bytes
+        y_max[1] = row['b_out'] if row['b_out'] > y_max[1] # out bytes
+      elsif row['total'] > y_max[0]
+        y_max[0] = row['total']
       end
+      fd.puts "#{row['log_timestamp']}\t#{row['b_in']}\t#{row['total']}"
     end
     return y_max
   end
