@@ -1,6 +1,7 @@
 class Graph_2D < Graph_Parent
   def initialize(mysql_conf, host, split_in_out, start_time, end_time, url = nil)
     super
+    host.gsub!(/adsl/, 'link')
     @mysql_conf = mysql_conf
     graph(host, split_in_out, start_time, end_time)
     @images = if url
@@ -161,7 +162,7 @@ class Graph_2D < Graph_Parent
   # MariaDB is currently really slow, if the log_summary
   # table is joined with another table (mysql 5.7 wasn't)
   # Doing two queries, and the join in code, is hundreds of times faster
-  def private fetch_log_summary_data(host, start_time, end_time)
+  private def fetch_log_summary_data(host, start_time, end_time)
     case host
     when 'Total'
       # Just the Links. One result per time slot, to get the total
