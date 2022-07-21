@@ -153,74 +153,80 @@ class Graph_3D < Graph_Parent
   # MariaDB is currently really slow, if the log_summary
   # table is joined with another table (mysql 5.7 wasn't)
   # Doing two queries, and the join in code, is hundreds of times faster
-  def fetch_log_summary_data(dist_site, links, start_time, end_time)
-    link_query = <<~SQL
-      SELECT site_name FROM line WHERE active=1 ORDER BY site_name
-    SQL
-    dist_query = if dist_site == 'all' || dist_site == 'dist'
-                   links = true
-                   <<~SQL
-                     SELECT d.site_name AS dist_site, c.site_name AS cust_site
-                     FROM distribution AS d
-                     JOIN customer_distribution USING (distribution_id)
-                     JOIN customer AS c USING (customer_id)
-                     WHERE d.active = 1
-                     AND c.active = 1
-                   SQL
-                 else
-                   <<~SQL
-                     SELECT d.site_name AS dist_site, c.site_name AS cust_site
-                     FROM distribution AS d
-                     JOIN customer_distribution USING (distribution_id)
-                     JOIN customer AS c USING (customer_id)
-                     WHERE d.site_name = '#{dist_site}'
-                     AND c.active=1
-                   SQL
-                 end
-    log_query = <<~SQL
-      SELECT log_timestamp, hostname, bytes_in, bytes_out
-      FROM log_summary
-      WHERE log_timestamp >= '#{start_time.to_sql}'
-      AND log_timestamp <= '#{end_time.to_sql}'
-      ORDER BY log_timestamp
-    SQL
+  def fetch_log_summary_data(dist_site, _links, start_time, end_time)
+    dist_sites = {}
+    result = {}
     WIKK::SQL.connect(@mysql_conf) do |sql|
-      dist_sites = {}
-      if links
-        # Get the active line names
+      if dist_site == 'all' || dist_site == 'dist'
+        link_query = <<~SQL
+          SELECT site_name FROM line WHERE active=1 ORDER BY site_name
+        SQL
+        dist_query = <<~SQL
+          SELECT d.site_name AS dist_site, c.site_name AS cust_site
+          FROM distribution AS d
+          JOIN customer_distribution USING (distribution_id)
+          JOIN customer AS c USING (customer_id)
+          WHERE d.active = 1
+          AND c.active = 1
+        SQL
+
+        # Get the active link names. These are 1:1 mapping
         sql.each_hash(link_query) do |row|
           dist_sites[row['site_name']] = row['site_name']
         end
-      end
 
-      # Get the customer site names associate with each distribution site
-      sql.each_hash(dist_query) do |row|
-        dist_sites[row['cust_site']] = row['dist_site']
+        # Get the customer site names associate with each distribution site
+        # These are many:1 mappings
+        sql.each_hash(dist_query) do |row|
+          dist_sites[row['cust_site']] = row['dist_site']
+        end
+      else
+        dist_query = <<~SQL
+          SELECT c.site_name AS cust_site
+          FROM distribution AS d JOIN customer_distribution USING (distribution_id)
+          JOIN customer AS c USING (customer_id)
+          WHERE d.site_name = '#{dist_site}'
+          AND c.active=1
+        SQL
+
+        # Get the active Site names for this distribution site
+        # These are 1:1 mappings
+        sql.each_hash(dist_query) do |row|
+          dist_sites[row['cust_site']] = row['cust_site']
+        end
       end
 
       # Get the log data, for the period, along with the site_names
-      result = {}
+      log_query = <<~SQL
+        SELECT log_timestamp, hostname, bytes_in, bytes_out
+        FROM log_summary
+        WHERE log_timestamp >= '#{start_time.to_sql}'
+        AND log_timestamp <= '#{end_time.to_sql}'
+        ORDER BY log_timestamp
+      SQL
+
       sql.each_hash(log_query) do |row|
         result[row['log_timestamp']] ||= {}
-        dist_site = dist_sites[row['hostname']]
-        next if dist_site.nil?
+        # Map the log hostname to either itself, or a distribution site
+        site = dist_sites[row['hostname']]
+        next if site.nil? # i.e. not associated with a distribution site.
 
-        result[row['log_timestamp']][dist_site] ||= [ 0, 0 ]
-        result[row['log_timestamp']][dist_site][0] += row['bytes_in']
-        result[row['log_timestamp']][dist_site][1] += row['bytes_out']
+        result[row['log_timestamp']][site] ||= [ 0, 0 ]
+        result[row['log_timestamp']][site][0] += row['bytes_in']
+        result[row['log_timestamp']][site][1] += row['bytes_out']
       end
+    end
 
-      result.each do |timestamp, dist_records|
-        dist_records.each do |dist_site, traffic| # rubocop:disable Lint/ShadowingOuterLocalVariable
-          row = {
-            'log_timestamp' => timestamp,
-            'site' => dist_site,
-            'b_in' => traffic[0] / (1024 * 1024.0),
-            'b_out' => traffic[1] / (1024 * 1024.0),
-            'total' => (traffic[0] + traffic[1]) / (1024 * 1024.0)
-          }
-          yield row
-        end
+    result.each do |timestamp, dist_records|
+      dist_records.each do |site, traffic|
+        row = {
+          'log_timestamp' => timestamp,
+          'site' => site,
+          'b_in' => traffic[0] / (1024 * 1024.0),
+          'b_out' => traffic[1] / (1024 * 1024.0),
+          'total' => (traffic[0] + traffic[1]) / (1024 * 1024.0)
+        }
+        yield row
       end
     end
   end
