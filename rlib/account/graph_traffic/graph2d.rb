@@ -161,7 +161,7 @@ class Graph_2D < Graph_Parent
   # MariaDB is currently really slow, if the log_summary
   # table is joined with another table (mysql 5.7 wasn't)
   # Doing two queries, and the join in code, is hundreds of times faster
-  def fetch_log_summary_data(host, start_time, end_time)
+  def private fetch_log_summary_data(host, start_time, end_time)
     case host
     when 'Total'
       # Just the Links. One result per time slot, to get the total

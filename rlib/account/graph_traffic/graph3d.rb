@@ -56,7 +56,7 @@ class Graph_3D < Graph_Parent
       # plot_fd.no_unlink
       TmpFileMod::TmpFile.open(temp_filename_txt, 'w') do |txt_fd|
         # txt_fd.no_unlink
-        z_max = fetch_data(txt_fd, dist_host, links, hosts, start_time, end_time)
+        z_max = fetch_data(txt_fd, dist_host, hosts, start_time, end_time)
         gen_graph_instructions(plot_fd, dist_host, hosts, temp_filename_txt, start_time, end_time, z_max)
         plot_fd.flush
         txt_fd.flush
@@ -153,7 +153,7 @@ class Graph_3D < Graph_Parent
   # MariaDB is currently really slow, if the log_summary
   # table is joined with another table (mysql 5.7 wasn't)
   # Doing two queries, and the join in code, is hundreds of times faster
-  def fetch_log_summary_data(dist_site, _links, start_time, end_time)
+  private def fetch_log_summary_data(dist_site, start_time, end_time)
     dist_sites = {}
     result = {}
     WIKK::SQL.connect(@mysql_conf) do |sql|
@@ -241,7 +241,7 @@ class Graph_3D < Graph_Parent
   # @param hosts [Array, String] site_names of either the towers or the actual client sites
   # @param start_time [Time] specify from when
   # @param end_time [Time] specify to when
-  private def fetch_data(fd, dist_host, links, hosts, start_time, end_time)
+  private def fetch_data(fd, dist_host, hosts, start_time, end_time)
     z_max = 35.0 # Default maximum z value for plot graph. Might grow, but wont reduce.
 
     # Set up references, by site_name, using a hash to the array of hosts
@@ -260,7 +260,7 @@ class Graph_3D < Graph_Parent
 
     line = Array.new(hosts.length * 2 + 1, '-') # init to no data. '-' indicates no data, and gets overwriten if we get data
     total_in = total_in_out = 0.0 # Totals for this time stamp
-    fetch_log_summary_data(dist_host, links, start_time, end_time) do |row|
+    fetch_log_summary_data(dist_host, start_time, end_time) do |row|
       next if row['site'] == 'TERMINATED' || hostmap[row['site']].nil?
 
       if line[0] == '-' # Starting a new line
