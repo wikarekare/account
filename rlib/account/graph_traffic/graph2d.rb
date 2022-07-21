@@ -179,7 +179,7 @@ class Graph_2D < Graph_Parent
       WIKK::SQL.connect(@mysql_conf) do |sql|
         sql.each_hash(link_query) do |row|
           result = {
-            'log_timestamp' => timestamp,
+            'log_timestamp' => row['log_timestamp'],
             'b_in' => row['b_in'] / (1024 * 1024.0),
             'b_out' => row['b_out'] / (1024 * 1024.0),
             'total' => (row['b_in'] + row['b_out']) / (1024 * 1024.0)
