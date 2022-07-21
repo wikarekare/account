@@ -161,14 +161,14 @@ class Graph_2D < Graph_Parent
   # MariaDB is currently really slow, if the log_summary
   # table is joined with another table (mysql 5.7 wasn't)
   # Doing two queries, and the join in code, is hundreds of times faster
-  def fetch_log_summary_data(host, start_time, end_time, &block)
+  def fetch_log_summary_data(host, start_time, end_time)
     case host
     when 'Total'
       # Just the Links. One result per time slot, to get the total
       link_query = <<~SQL
         SELECT log_timestamp,
-               sum(bytes_in)/(1024*1024.0) AS b_in,
-               sum(bytes_in + bytes_out)/(1024*1024.0) AS total
+               SUM(bytes_in) AS b_in,
+               SUM(bytes_out) AS b_out
         FROM log_summary
         WHERE log_timestamp >= '#{start_time.to_sql}'
         AND log_timestamp <= '#{end_time.to_sql}'
@@ -177,14 +177,22 @@ class Graph_2D < Graph_Parent
         ORDER BY log_timestamp
       SQL
       WIKK::SQL.connect(@mysql_conf) do |sql|
-        sql.each_hash(link_query, &block)
+        sql.each_hash(link_query) do |row|
+          result = {
+            'log_timestamp' => timestamp,
+            'b_in' => row['b_in'] / (1024 * 1024.0),
+            'b_out' => row['b_out'] / (1024 * 1024.0),
+            'total' => (row['b_in'] + row['b_out']) / (1024 * 1024.0)
+          }
+          yield result
+        end
       end
     when /^wikk/, /^link/, /^admin[12]/
       # Specific site.
       site_query = <<~SQL
         SELECT log_timestamp,
-              bytes_in/(1024*1024.0) AS b_in,
-              (bytes_in + bytes_out)/(1024*1024.0) AS total
+              bytes_in AS b_in,
+              bytes_out AS b_out
         FROM log_summary
         WHERE hostname = '#{WIKK::SQL.escape(host)}'
         AND log_timestamp >= '#{start_time.to_sql}'
@@ -192,7 +200,15 @@ class Graph_2D < Graph_Parent
         ORDER BY log_timestamp
       SQL
       WIKK::SQL.connect(@mysql_conf) do |sql|
-        sql.each_hash(site_query, &block)
+        sql.each_hash(site_query) do |row|
+          result = {
+            'log_timestamp' => row['log_timestamp'],
+            'b_in' => row['b_in'] / (1024 * 1024.0),
+            'b_out' => row['b_out'] / (1024 * 1024.0),
+            'total' => (row['b_in'] + row['b_out']) / (1024 * 1024.0)
+          }
+          yield result
+        end
       end
     else
       # A specific distribution site.
