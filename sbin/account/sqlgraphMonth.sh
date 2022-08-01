@@ -15,8 +15,8 @@ ${RM} ${TMP_PLOT_DIR}/wikkpT3D_excel.txt
 
 ${MV} ${TMP_PLOT_DIR}/usage_asofnow.plot ${WWW_DIR}/netstat/tsv/asofnow.tsv
 ${MV} ${TMP_PLOT_DIR}/bill_asofnow.tsv ${WWW_DIR}/netstat/tsv/bill_asofnow.tsv
-${CHOWN} www:www ${WWW_DIR}/netstat/tsv/asofnow.tsv ${WWW_DIR}/netstat/tsv/bill_asofnow.tsv
+${CHOWN} ${WWW}:${WWW} ${WWW_DIR}/netstat/tsv/asofnow.tsv ${WWW_DIR}/netstat/tsv/bill_asofnow.tsv
 
 ${MV} ${TMP_PLOT_DIR}/wikkpT3D.png ${WWW_DIR}/netstat
 ${MV} ${TMP_PLOT_DIR}/wikkpT3D_link.png ${WWW_DIR}/netstat
-${CHOWN} www:www ${WWW_DIR}/netstat/wikkpT3D.png ${WWW_DIR}/netstat/wikkpT3D_link.png
+${CHOWN} ${WWW}:${WWW} ${WWW_DIR}/netstat/wikkpT3D.png ${WWW_DIR}/netstat/wikkpT3D_link.png

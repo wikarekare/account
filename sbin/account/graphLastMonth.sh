@@ -30,12 +30,12 @@ ${SBIN_DIR}/account/transpose_and_sum_rate.rb ${TMP_PLOT_DIR}/wikkpT3D_${year1}_
 
 ${MV} ${TMP_PLOT_DIR}/usage_1m_${year1}_${month1}.plot ${WWW_DIR}/netstat/tsv/usage_1m_${year1}_${month1}.tsv
 ${MV} ${TMP_PLOT_DIR}/bill_1m_${year1}_${month1}.tsv ${WWW_DIR}/netstat/tsv/bill_1m_${year1}_${month1}.tsv
-${CHOWN} www:www ${WWW_DIR}/netstat/tsv/usage_1m_${year1}_${month1}.tsv ${WWW_DIR}/netstat/tsv/bill_1m_${year1}_${month1}.tsv
+${CHOWN} ${WWW}:${WWW} ${WWW_DIR}/netstat/tsv/usage_1m_${year1}_${month1}.tsv ${WWW_DIR}/netstat/tsv/bill_1m_${year1}_${month1}.tsv
 ${RM} ${TMP_PLOT_DIR}/wikkpT3D_${year1}_${month1}_excel.txt
 
 ${MV} ${TMP_PLOT_DIR}/wikkpT3D_${year1}_${month1}.png ${WWW_DIR}/netstat/monthly/wikkpT3D_${year1}_${month1}.png
 ${MV} ${TMP_PLOT_DIR}/wikkpT3D_${year1}_${month1}_link.png ${WWW_DIR}/netstat/monthly/wikkpT3D_${year1}_${month1}_link.png
-${CHOWN} www:www ${WWW_DIR}/netstat/monthly/wikkpT3D_${year1}_${month1}.png ${WWW_DIR}/netstat/monthly/wikkpT3D_${year1}_${month1}_link.png
+${CHOWN} ${WWW}:${WWW} ${WWW_DIR}/netstat/monthly/wikkpT3D_${year1}_${month1}.png ${WWW_DIR}/netstat/monthly/wikkpT3D_${year1}_${month1}_link.png
 
 #
 ${RM} -f ${LOCK_PID_FILE}

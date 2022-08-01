@@ -24,7 +24,7 @@ ${RM} -f ${WWW_DIR}/netstat/lastmonth.html
 ${RM} -f ${WWW_DIR}/netstat/month-2.html
 ${LN} -s ${WWW_DIR}/netstat/wikk-month-${year1}-${month1}.html ${WWW_DIR}/netstat/lastmonth.html
 ${LN} -s ${WWW_DIR}/netstat/wikk-month-${year2}-${month2}.html ${WWW_DIR}/netstat/month-2.html
-${CHOWN} -h www:www ${WWW_DIR}/netstat/lastmonth.html ${WWW_DIR}/netstat/month-2.html
+${CHOWN} -h ${WWW}:${WWW} ${WWW_DIR}/netstat/lastmonth.html ${WWW_DIR}/netstat/month-2.html
 
 ${CAT} > ${WWW_DIR}/netstat/lastmonthx.html <<EOF
 <html>
