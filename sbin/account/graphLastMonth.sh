@@ -15,7 +15,7 @@ if [ "${OSTYPE}" = "FreeBSD" ] ; then
   year2=`date -v "-2m" "+%Y"`
   month2=`date -v "-2m" "+%m"`
 else
-  accountDate_start="+%Y-%m-01 00:00:00" -d "1 month ago"`
+  accountDate_start=`date "+%Y-%m-01 00:00:00" -d "1 month ago"`
   year1=`date "+%Y" -d "1 month ago"`
   month1=`date "+%m" -d "1 month ago"`
 
