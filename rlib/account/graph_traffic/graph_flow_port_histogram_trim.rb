@@ -168,7 +168,7 @@ class Graph_Flow_Ports_Hist_trim < Graph_Parent # ports we don't know about get 
   end
 
   private def remote_address?(src_ip, dest_ip)
-    if WIKK::IPv4.new(src_ip, WIKK::IPv4.maskbits_to_i(NETWORK_MASK_BITS)).ip_address == @ip_net.ip_address
+    if WIKK::IPv4.new(src_ip, WIKK::IPv4.maskbits_to_i(NETWORK_MASK_BITS)).ipaddress == @ip_net.ipaddress
       return dest_ip, true # Outbound
     else
       return src_ip, false # inbound

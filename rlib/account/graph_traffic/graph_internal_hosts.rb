@@ -146,7 +146,7 @@ class Graph_Internal_Hosts < Graph_Parent
   end
 
   private def local_address?(src_ip, dest_ip)
-    if WIKK::IPv4.new(src_ip, WIKK::IPv4.maskbits_to_i(NETWORK_MASK_BITS)).ip_address == @ip_net.ip_address
+    if WIKK::IPv4.new(src_ip, WIKK::IPv4.maskbits_to_i(NETWORK_MASK_BITS)).ipaddress == @ip_net.ipaddress
       return src_ip, true, dest_ip  # Outbound
     else
       return dest_ip, false, src_ip  # inbound
