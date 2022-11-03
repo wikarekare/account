@@ -1,5 +1,14 @@
 # Uber class for common methods
+# Uber class for common methods
 class Graph_Parent
+  attr_reader :images
+  attr_accessor :debug
+
+  def initialize(*_args)
+    @debug = false ######
+    @images = ''
+  end
+
   def adsl_ip?(address)
     return address == EXTERNAL5 || address == EXTERNAL6 || address == EXTERNAL7
   end

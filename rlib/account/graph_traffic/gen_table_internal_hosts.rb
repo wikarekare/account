@@ -1,7 +1,3 @@
-require 'open3'
-require 'socket'
-require 'wikk_ipv4'
-
 # Generate Internal Hosts Usage Graph.
 class Gen_Table_Internal_Hosts
   NETWORK_MASK_BITS = 27
@@ -25,7 +21,7 @@ class Gen_Table_Internal_Hosts
   end
 
   def self.debug(site_name, start_time, end_time)
-    gfh = Graph_flow_Host_Hist_trim.new(site_name, start_time, end_time, true) # True indicates debug on.
+    gfh = self.new(site_name, start_time, end_time, true) # True indicates debug on.
     puts "images=#{gfh.images}"
   end
 
@@ -110,7 +106,7 @@ class Gen_Table_Internal_Hosts
     (@start_time.to_i..@end_time.to_i).step(86400) do |d|
       t = Time.at(d)
       filename = "#{FLOW_LOG_DIR}/log/#{t.year}/#{t.year}-#{'%02d' % t.month}/#{t.year}-#{'%02d' % t.month}-#{'%02d' % t.mday}/*" # All files for that day
-      cmd = "#{FLOW_CAT} #{filename} | #{FLOW_NFILTER} -F network -v NETWORK=#{@ip_net} | #{FLOW_PRINT} -f 25"
+      cmd = "#{FLOW_CAT} #{filename} | #{FLOW_NFILTER} -F network -v NETWORK=#{@ip_net.network} | #{FLOW_PRINT} -f 25"
       puts cmd if @debug
       stdout, _stderr, _status = Open3.capture3(cmd)
       stdout.each_line do |line|
@@ -150,7 +146,7 @@ class Gen_Table_Internal_Hosts
   end
 
   private def remote_address?(src_ip, dest_ip)
-    if WIKK::IPv4.new(src_ip, WIKK::IPv4.maskbits_to_i(NETWORK_MASK_BITS)).ipaddress == @ip_net.ipaddress
+    if WIKK::IPv4.new(src_ip, WIKK::IPv4.maskbits_to_i(NETWORK_MASK_BITS)).network == @ip_net.network
       return dest_ip, true # Outbound
     else
       return src_ip, false # inbound

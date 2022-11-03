@@ -1,5 +1,6 @@
 class Graph_Ports_Hist < Graph_Parent
   def initialize(host, starttime, endtime)
+    super
     @host = host
     @start = starttime
     @end = endtime

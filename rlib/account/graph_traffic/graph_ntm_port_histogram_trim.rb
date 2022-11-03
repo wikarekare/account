@@ -1,5 +1,6 @@
 class Graph_Ports_Hist_trim < Graph_Parent # ports we don't know about get grouped together.
   def initialize(host, starttime, endtime)
+    super
     @host = host
     @start = starttime
     @end = endtime

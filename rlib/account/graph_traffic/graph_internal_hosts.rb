@@ -1,7 +1,3 @@
-require 'open3'
-require 'socket'
-require 'wikk_ipv4'
-
 # With data from flow-tools, Graph a sites internal host traffic histogram with GnuPlot
 class Graph_Internal_Hosts < Graph_Parent
   NETWORK_MASK_BITS = 27
@@ -106,7 +102,7 @@ class Graph_Internal_Hosts < Graph_Parent
     (@start_time.to_i..@end_time.to_i).step(86400) do |d|
       t = Time.at(d)
       filename = "#{FLOW_LOG_DIR}/log/#{t.year}/#{t.year}-#{'%02d' % t.month}/#{t.year}-#{'%02d' % t.month}-#{'%02d' % t.mday}/*" # All files for that day
-      cmd = "#{FLOW_CAT} #{filename} | #{FLOW_NFILTER} -F network -v NETWORK=#{@ip_net} | #{FLOW_PRINT} -f 25"
+      cmd = "#{FLOW_CAT} #{filename} | #{FLOW_NFILTER} -F network -v NETWORK=#{@ip_net.network} | #{FLOW_PRINT} -f 25"
       puts cmd if @debug
       stdout, _stderr, _status = Open3.capture3(cmd)
       stdout.each_line do |line|
@@ -117,7 +113,7 @@ class Graph_Internal_Hosts < Graph_Parent
     end
   end
 
-  # #{FLOW_CAT} #{@filename} | #{FLOW_NFILTER} -F network -v NETWORK=#{@ip_net.to_s}| flow-print -f 25
+  # #{FLOW_CAT} #{@filename} | #{FLOW_NFILTER} -F network -v NETWORK=#{@ip_net.network}| flow-print -f 25
   # 0                      1                       2     3              4     5   6                7    8  9   10   11   12     13    14
   # Start	               End	                   Sif	SrcIPaddress	  SrcP	DIf	DstIPaddress	  DstP	P	 Fl	tos	Pkts	Octets	saa	  daa
   # 2013-12-15 16:19:54.032	2013-12-15 16:19:54.262	0	  10.4.2.208     	60334	0	  210.55.204.219 	443	  6	 6	0	  2	   104	    1270	3400
@@ -146,7 +142,7 @@ class Graph_Internal_Hosts < Graph_Parent
   end
 
   private def local_address?(src_ip, dest_ip)
-    if WIKK::IPv4.new(src_ip, WIKK::IPv4.maskbits_to_i(NETWORK_MASK_BITS)).ipaddress == @ip_net.ipaddress
+    if WIKK::IPv4.new(src_ip, WIKK::IPv4.maskbits_to_i(NETWORK_MASK_BITS)).network == @ip_net.network
       return src_ip, true, dest_ip  # Outbound
     else
       return dest_ip, false, src_ip  # inbound
@@ -178,7 +174,7 @@ class Graph_Internal_Hosts < Graph_Parent
   end
 
   def self.debug(site_name, start_time, end_time)
-    gfh = Graph_flow_Host_Hist_trim.new(site_name, start_time, end_time, true) # True indicates debug on.
+    gfh = self.new(site_name, start_time, end_time, true) # True indicates debug on.
     puts "images=#{gfh.images}"
   end
 end
