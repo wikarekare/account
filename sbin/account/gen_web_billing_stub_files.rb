@@ -30,8 +30,8 @@ end
 
 def output_year_selector(fd, year)
   fd.print <<~HTML
-      <td>
-        <select name="year">
+    <td>
+      <select name="year">
   HTML
 
   (START_YEAR..END_YEAR).each do |y|
@@ -43,15 +43,15 @@ def output_year_selector(fd, year)
   end
 
   fd.print <<~HTML
-          </select>
-        </td>
+      </select>
+    </td>
   HTML
 end
 
 def output_month_selector(fd, month)
   fd.print <<~HTML
-      <td>
-        <select name="month">
+    <td>
+      <select name="month">
   HTML
 
   (1..12).each do |m|

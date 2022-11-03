@@ -115,8 +115,8 @@ def transpose_and_sum(input, outfile_fd) # , plan_rates, minimum_charge = 5)
                     extended_usage.round(3), site_extended_cost.round(2),
                     excess_usage.round(3),   site_excess_cost.round(2),
                     (site_extended_cost + site_excess_cost).round(2)
-              ]
-    sums.each_with_index { |v, i| sums[i] = v + value_array[i] unless i == 0 }
+                  ]
+    sums.each_with_index { |v, j| sums[j] = v + value_array[j] unless j == 0 }
     value_array[1] = '%.3f' % value_array[1]
     value_array[2] = '%.3f' % value_array[2]
     value_array[3] = '%.3f' % value_array[3]
