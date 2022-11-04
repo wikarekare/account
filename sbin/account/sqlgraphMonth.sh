@@ -4,7 +4,7 @@
 #Link Balance
 #
 theDay=`date "+%d"`
-accountDate=`date "+%Y-%m-01 00:00:00"`
+accountDate=`date "+%Y-%m-01"`
 
 ${SBIN_DIR}/account/sqlplot_rate.rb --start_when="${accountDate}" ${TMP_PLOT_DIR}/usage_asofnow.plot ${TMP_PLOT_DIR}/wikkpT3D.png > ${TMP_PLOT_DIR}/1s.plot
 ${GNUPLOT} < ${TMP_PLOT_DIR}/1s.plot
