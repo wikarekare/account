@@ -36,8 +36,8 @@ class Graph_Total_Usage < Graph_Parent
       query = <<~SQL
         SELECT hostname, sum(bytes_in)/1073741824.0 as b_in, sum(bytes_out)/1073741824.0 AS b_out
         FROM log_summary
-        WHERE log_timestamp >= '#{start_time.to_sql}'
-        AND log_timestamp <= '#{end_time.to_sql}'
+        WHERE log_timestamp >= '#{@start_when.strftime('%Y-%m-%d %H:%M:%S')}'
+        AND log_timestamp <= '#{@stop_when.strftime('%Y-%m-%d %H:%M:%S')}'
         GROUP BY hostname
         ORDER BY hostname
       SQL
