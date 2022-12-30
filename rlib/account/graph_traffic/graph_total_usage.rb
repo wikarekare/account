@@ -33,7 +33,7 @@ class Graph_Total_Usage < Graph_Parent
 
   private def fetch_data(txt_fd)
     WIKK::SQL.connect(@mysql_conf) do |sql|
-      query = <<~SQL
+      traffic_query = <<~SQL
         SELECT hostname, sum(bytes_in)/1073741824.0 as b_in, sum(bytes_out)/1073741824.0 AS b_out
         FROM log_summary
         WHERE log_timestamp >= '#{@start_when.strftime('%Y-%m-%d %H:%M:%S')}'
@@ -46,54 +46,29 @@ class Graph_Total_Usage < Graph_Parent
       @sum_out = [ 'Out', 0.0 ]
       @key_by_index = [ 'Direction', 'Total' ]
 
-      (1..NLINKS).each do |i| # 0.0's are there so we have the right number of entries before we append to the array
+      # Get list of active links from backbone table.
+      @link_index = {}
+      links_query = <<~SQL
+        SELECT site_name
+        FROM backbone
+        WHERE site_name LIKE 'link%'
+        AND active = 1
+        ORDER BY site_name
+      SQL
+      sql.each_hash(links_query) do |row|
         @sum_in << 0.0
         @sum_out << 0.0
-        @key_by_index << "Link#{i}"
+        @key_by_index << row['site_name'].capitalize
+        @link_index[row['site_name']] = @key_by_index.length - 1
       end
 
-      sql.each_hash(query) do |row|
+      sql.each_hash(traffic_query) do |row|
         case row['hostname']
-        when 'link1'
-          @sum_in[2] = row['b_in'].to_f
-          @sum_out[2] = row['b_out'].to_f
+        when /^link/
+          index = @link_index[row['hostname']]
+          @sum_in[index] = row['b_in'].to_f
+          @sum_out[index] = row['b_out'].to_f
           # Also want Total = Link1 + Link2 + Link3 + Link4
-          @sum_in[1] += row['b_in'].to_f
-          @sum_out[1] += row['b_out'].to_f
-        when 'link2'
-          @sum_in[3] = row['b_in'].to_f
-          @sum_out[3] = row['b_out'].to_f
-          # Also want Total = Link1 + Link2 + Link3 + Link4
-          @sum_in[1] += row['b_in'].to_f
-          @sum_out[1] += row['b_out'].to_f
-        when 'link3'
-          @sum_in[4] = row['b_in'].to_f
-          @sum_out[4] = row['b_out'].to_f
-          # Also want Total = Link1 + Link2 + Link3 + Link4
-          @sum_in[1] += row['b_in'].to_f
-          @sum_out[1] += row['b_out'].to_f
-        when 'link4'
-          @sum_in[5] = row['b_in'].to_f
-          @sum_out[5] = row['b_out'].to_f
-          # Also want Total = Link1 + Link2 + Link3 + Link4
-          @sum_in[1] += row['b_in'].to_f
-          @sum_out[1] += row['b_out'].to_f
-        when 'link5'
-          @sum_in[6] = row['b_in'].to_f
-          @sum_out[6] = row['b_out'].to_f
-          # Also want Total = Link1 + Link2 + Link3 + Link4 + Link5
-          @sum_in[1] += row['b_in'].to_f
-          @sum_out[1] += row['b_out'].to_f
-        when 'link6'
-          @sum_in[7] = row['b_in'].to_f
-          @sum_out[7] = row['b_out'].to_f
-          # Also want Total = Link1 + Link2 + Link3 + Link4 + Link5 + Link6
-          @sum_in[1] += row['b_in'].to_f
-          @sum_out[1] += row['b_out'].to_f
-        when 'link7'
-          @sum_in[8] = row['b_in'].to_f
-          @sum_out[8] = row['b_out'].to_f
-          # Also want Total = Link1 + Link2 + Link3 + Link4 + Link5 + Link6 + Link7
           @sum_in[1] += row['b_in'].to_f
           @sum_out[1] += row['b_out'].to_f
         else # All other hosts append to the gbytes in, out and key arrays
