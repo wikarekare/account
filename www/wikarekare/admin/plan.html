@@ -44,7 +44,7 @@
 
         var args = {
           "method": "Plan.update",
-          "kwparams": {
+          "params": {
             "select_on": { "plan_id": plan_id },
             "set": set_hash,
             "result": []
@@ -147,7 +147,7 @@
             //alert("Changed " + site_input.name + " to plan " + site_input.value);
             var args = {
               "method": "Customer.update",
-              "kwparams": {
+              "params": {
                 "select_on": { "site_name": site_input.name },
                 "set": { "plan": site_input.value },
                 "result": []
@@ -183,7 +183,7 @@
     function get_customers(delay) {
       var args = {
         "method": "Customer.read",
-        "kwparams": {
+        "params": {
           "select_on": { "active": "1" }, //every active site
           "order_by": ['site_name'],
           "set": { }, //no fields to update in a GET
@@ -226,7 +226,7 @@
       //alert(site_input.name + " " + site_input.value);
       var args = {
         "method": "Plan.read",
-        "kwparams": {
+        "params": {
           "select_on": {}, //every plan
           "order_by": [],
           "set": { }, //no fields to update in a GET
