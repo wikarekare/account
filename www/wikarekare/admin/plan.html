@@ -49,7 +49,8 @@
             "set": set_hash,
             "result": []
           },
-          "version": 1.1
+          "id": Date.getTime(),
+          "jsonrpc": 2.0
         }
         url = "/ruby/rpc.rbx"
         wikk_ajax.ajax_post_call(url, args, plan_value_change_callback, plan_value_change_error, plan_value_change_completion, 'json', true)
@@ -151,7 +152,8 @@
                 "set": { "plan": site_input.value },
                 "result": []
               },
-              "version": 1.1
+              "id": Date.getTime(),
+              "jsonrpc": 2.0
             }
             url = "/ruby/rpc.rbx"
             wikk_ajax.ajax_post_call(url, args, site_value_change_callback, site_value_change_error, site_value_change_completion, 'json', true)
@@ -187,7 +189,8 @@
           "set": { }, //no fields to update in a GET
           "result": ["site_name", "plan"]
         },
-        "version": 1.1
+        "id": Date.getTime(),
+        "jsonrpc": 2.0
       }
       url = "/ruby/rpc.rbx"
       wikk_ajax.delayed_ajax_post_call(url, args, get_customers_callback, get_customers_error, get_customers_completion, 'json', true, delay)
@@ -229,7 +232,8 @@
           "set": { }, //no fields to update in a GET
           "result": ["plan_id", "base_gb", "plan_name", "extended_gb", "base_price", "extended_unit_price", "excess_unit_price", "free_rate"]
         },
-        "version": 1.1
+        "id": Date.getTime(),
+        "jsonrpc": 2.0
       }
       url = "/ruby/rpc.rbx"
       wikk_ajax.delayed_ajax_post_call(url, args, get_plan_callback, get_plan_error, get_plan_completion, 'json', true, delay)
