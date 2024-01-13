@@ -1,14 +1,14 @@
 <html>
 <head>
   <title>Assign Plan</title>
-  <script src="/js/jquery-3.0.0.min.js"></script>
+  <script src="/js/jquery-3.7.1.min.js"></script>
   <script src="/js/wikk_ajax-min.js"></script>
   <script src="/js/wikk_web_auth-min.js"></script>
   <script>
     var data_packet = {
       "plan": [
-         { "plan_id": "-1", "plan_name": "System", "base_gb": "0", "base_price": "0",
-           "extended_gb": "0", "extended_unit_price": "0", "excess_unit_price": "0", "free_rate": "0" }
+        { "plan_id": "-1", "plan_name": "System", "base_gb": "0", "base_price": "0",
+          "extended_gb": "0", "extended_unit_price": "0", "excess_unit_price": "0", "free_rate": "0" }
       ],
       "site_plan": [
         {"site_name": "wikk000", "plan": "0"}
@@ -16,20 +16,20 @@
     }
 
     function del_rows(table_id) { //remove table body's rows
-        for(var i = table_id.rows.length; i > 0 ; i--) {
-          table_id.deleteRow(i-1);
-        }
+      for(var i = table_id.rows.length; i > 0 ; i--) {
+        table_id.deleteRow(i-1);
+      }
     }
 
     function input_str(plan_index, id, text, size) {
       return '<input type="text" id="' + id + plan_index + '" plan_index = "' + plan_index + '" field="' + id +'" onchange="plan_change(id);" size="' + size + '" value="' + text + '">';
     }
 
-    function plan_value_change_callback(data) {   //Called when we get a response.
+    function plan_value_change_callback(data) { //Called when we get a response.
     }
     function plan_value_change_error(jqXHR, textStatus, errorMessage) {   //Called on failure
     }
-    function plan_value_change_completion(data) {   //Called when everything completed, including callback.
+    function plan_value_change_completion(data) { //Called when everything completed, including callback.
     }
 
     function plan_change(id) {
@@ -52,7 +52,7 @@
           "id": Date.getTime(),
           "jsonrpc": 2.0
         }
-        url = "/ruby/rpc.rbx"
+        url = RPC
         wikk_ajax.ajax_post_call(url, args, plan_value_change_callback, plan_value_change_error, plan_value_change_completion, 'json', true)
       }
     }
@@ -155,7 +155,7 @@
               "id": Date.getTime(),
               "jsonrpc": 2.0
             }
-            url = "/ruby/rpc.rbx"
+            url = RPC
             wikk_ajax.ajax_post_call(url, args, site_value_change_callback, site_value_change_error, site_value_change_completion, 'json', true)
           }
         }
@@ -192,7 +192,7 @@
         "id": Date.getTime(),
         "jsonrpc": 2.0
       }
-      url = "/ruby/rpc.rbx"
+      url = RPC
       wikk_ajax.delayed_ajax_post_call(url, args, get_customers_callback, get_customers_error, get_customers_completion, 'json', true, delay)
       return false;
     }
@@ -235,7 +235,7 @@
         "id": Date.getTime(),
         "jsonrpc": 2.0
       }
-      url = "/ruby/rpc.rbx"
+      url = RPC
       wikk_ajax.delayed_ajax_post_call(url, args, get_plan_callback, get_plan_error, get_plan_completion, 'json', true, delay)
     }
 
