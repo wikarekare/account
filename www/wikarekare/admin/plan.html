@@ -49,10 +49,10 @@
             "set": set_hash,
             "result": []
           },
-          "id": Date.getTime(),
+          "id": new Date().getTime(),
           "jsonrpc": 2.0
         }
-        url = RPC
+        url = RPC_URL
         wikk_ajax.ajax_post_call(url, args, plan_value_change_callback, plan_value_change_error, plan_value_change_completion, 'json', true)
       }
     }
@@ -152,10 +152,10 @@
                 "set": { "plan": site_input.value },
                 "result": []
               },
-              "id": Date.getTime(),
+              "id": new Date().getTime(),
               "jsonrpc": 2.0
             }
-            url = RPC
+            url = RPC_URL
             wikk_ajax.ajax_post_call(url, args, site_value_change_callback, site_value_change_error, site_value_change_completion, 'json', true)
           }
         }
@@ -189,10 +189,10 @@
           "set": { }, //no fields to update in a GET
           "result": ["site_name", "plan"]
         },
-        "id": Date.getTime(),
+        "id": new Date().getTime(),
         "jsonrpc": 2.0
       }
-      url = RPC
+      url = RPC_URL
       wikk_ajax.delayed_ajax_post_call(url, args, get_customers_callback, get_customers_error, get_customers_completion, 'json', true, delay)
       return false;
     }
@@ -232,10 +232,10 @@
           "set": { }, //no fields to update in a GET
           "result": ["plan_id", "base_gb", "plan_name", "extended_gb", "base_price", "extended_unit_price", "excess_unit_price", "free_rate"]
         },
-        "id": Date.getTime(),
+        "id": new Date().getTime(),
         "jsonrpc": 2.0
       }
-      url = RPC
+      url = RPC_URL
       wikk_ajax.delayed_ajax_post_call(url, args, get_plan_callback, get_plan_error, get_plan_completion, 'json', true, delay)
     }
 
