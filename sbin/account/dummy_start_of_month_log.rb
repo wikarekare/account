@@ -2,8 +2,10 @@
 require 'wikk_sql'
 require 'time'
 require 'wikk_configuration'
-RLIB = '/wikk/rlib' unless defined? RLIB
-require_relative "#{RLIB}/wikk_conf.rb"
+
+unless defined? WIKK_CONF
+  load '/wikk/etc/wikk.conf'
+end
 
 # For each customer site
 # Insert a start of month marker record into the log_summary table

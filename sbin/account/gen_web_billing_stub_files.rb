@@ -1,5 +1,7 @@
 #!/usr/local/bin/ruby
-load '/wikk/etc/wikk.conf'
+unless defined? WIKK_CONF
+  load '/wikk/etc/wikk.conf'
+end
 
 TARGET_DIR = "#{WWW_DIR}/#{NETSTAT_DIR}"
 START_YEAR = 2006

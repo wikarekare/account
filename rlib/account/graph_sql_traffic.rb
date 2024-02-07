@@ -7,7 +7,7 @@ require 'open3'
 require 'socket'
 require 'wikk_ipv4'
 
-RLIB = '/wikk/rlib' unless defined? RLIB
+
 require_relative "#{RLIB}/utility/datetime_ext.rb"
 
 # Manifest

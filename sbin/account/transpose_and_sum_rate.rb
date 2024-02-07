@@ -1,8 +1,10 @@
 #!/usr/local/bin/ruby
 require 'wikk_sql'
 require 'wikk_configuration'
-RLIB = '/wikk/rlib' unless defined? RLIB
-require_relative "#{RLIB}/wikk_conf.rb"
+
+unless defined? WIKK_CONF
+  load '/wikk/etc/wikk.conf'
+end
 
 # [Accumulated GBytes This Month (2014-05-01 00:00:00 to 2014-06-01 00:00:00)]
 # Direction	Link1
