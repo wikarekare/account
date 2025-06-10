@@ -2,9 +2,7 @@
 require 'wikk_sql'
 require 'wikk_configuration'
 
-unless defined? WIKK_CONF
-  load '/wikk/etc/wikk.conf'
-end
+load '/wikk/etc/wikk.conf' unless defined? WIKK_CONF
 
 # [Accumulated GBytes This Month (2014-05-01 00:00:00 to 2014-06-01 00:00:00)]
 # Direction	Link1

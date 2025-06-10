@@ -13,9 +13,7 @@ require 'pp'
 require 'date'
 
 require 'wikk_configuration'
-unless defined? WIKK_CONF
-  load '/wikk/etc/wikk.conf'
-end
+load '/wikk/etc/wikk.conf' unless defined? WIKK_CONF
 
 # Horrible name.
 # Update the daily log_summary cache

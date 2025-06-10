@@ -3,9 +3,7 @@ require 'wikk_sql'
 require 'time'
 require 'wikk_configuration'
 
-unless defined? WIKK_CONF
-  load '/wikk/etc/wikk.conf'
-end
+load '/wikk/etc/wikk.conf' unless defined? WIKK_CONF
 
 # For each customer site
 # Insert a start of month marker record into the log_summary table
