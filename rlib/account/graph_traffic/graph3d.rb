@@ -3,7 +3,7 @@ class Graph_3D < Graph_Parent
 
   def initialize(mysql_conf, dist_host, links, start_time, end_time)
     super
-    dist_host.gsub!(/adsl/, 'link')
+    # dist_host.gsub!(/adsl/, 'link')
     @mysql_conf = mysql_conf
     @images = ''
     hosts = [ 'Total' ]
@@ -69,7 +69,7 @@ class Graph_3D < Graph_Parent
   end
 
   def self.graph_parent(mysql_conf, host, links, start_time, end_time)
-    host.gsub!(/adsl/, 'link')
+    # host.gsub!(/adsl/, 'link')
 
     if host == 'all' || host == 'dist'
       g = Graph_3D.new(mysql_conf, host, links, start_time, end_time)
