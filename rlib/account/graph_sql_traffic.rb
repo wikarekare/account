@@ -7,7 +7,6 @@ require 'open3'
 require 'socket'
 require 'wikk_ipv4'
 
-
 require_relative "#{RLIB}/utility/datetime_ext.rb"
 
 # Manifest
