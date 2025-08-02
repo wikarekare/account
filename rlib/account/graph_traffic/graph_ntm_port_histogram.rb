@@ -69,7 +69,7 @@ class Graph_Ports_Hist < Graph_Parent
     File.open( @filename ).each do |line|
       next unless line[0, 1] != '#'
 
-      tokens = line.chomp.strip.split(/\t/)
+      tokens = line.chomp.strip.split("\t")
       if tokens[7] == target && !ignore?(tokens[8]) && (t = Time.parse(tokens[0])) >= @start && t <= @end
         if ports[tokens[10]].nil? # no existing entry for this port
           ports[tokens[10]] =  [  tokens[14].to_i, tokens[13].to_i, tokens[6].to_i ] # As array of in, out
