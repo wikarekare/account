@@ -161,7 +161,7 @@ end
 
 input_name = ARGV[0]
 output_name = if ARGV[1].nil?
-                input_name.gsub(/usage_/, 'bill_')
+                input_name.gsub('usage_', 'bill_')
               else
                 ARGV[1]
               end
