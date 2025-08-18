@@ -1,3 +1,4 @@
+# 3D traffic graph
 class Graph_3D < Graph_Parent
   attr_accessor :hosts
 
@@ -255,7 +256,7 @@ class Graph_3D < Graph_Parent
     end
 
     # Graph Title
-    fd.print "\#Clients connected to #{dist_host}\n\#datetime\t#{hosts.join("\t")}\t#{hosts.join("\t")}\n"
+    fd.print "#Clients connected to #{dist_host}\n#datetime\t#{hosts.join("\t")}\t#{hosts.join("\t")}\n"
     fd.print "#{(start_time - 1).strftime('%Y-%m-%d %H:%M:%S')}"
 
     # first line has 0.0 entries.

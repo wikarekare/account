@@ -1,3 +1,4 @@
+# Graph Host Histogram. Will be shifting this to in page javascript, with rpc calls
 class Graph_Host_Hist < Graph_Parent
   def initialize(host, starttime, endtime)
     super
@@ -69,7 +70,7 @@ class Graph_Host_Hist < Graph_Parent
     File.open( @filename ).each do |line|
       next unless line[0, 1] != '#'
 
-      tokens = line.chomp.strip.split(/\t/)
+      tokens = line.chomp.strip.split("\t")
       if tokens[7] == target && !ignore?(tokens[8]) && (t = Time.parse(tokens[0])) >= @start && t <= @end
         if hosts[tokens[8]].nil? # no existing entry for this port
           hosts[tokens[8]] =  [  tokens[14].to_i, tokens[13].to_i ] # As array of in, out

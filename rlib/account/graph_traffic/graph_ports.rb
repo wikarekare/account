@@ -1,3 +1,4 @@
+# Graph ports
 class Graph_Ports < Graph_Parent
   def initialize(host, starttime, endtime)
     super
@@ -31,7 +32,7 @@ class Graph_Ports < Graph_Parent
     File.open( @filename ).each do |line|
       next unless line[0, 1] != '#'
 
-      tokens = line.chomp.strip.split(/\t/)
+      tokens = line.chomp.strip.split("\t")
       next unless tokens[7] == target && !ignore?(tokens[8]) && (t = Time.parse(tokens[0])) >= @start && t <= @end
 
       total += (tokens[13].to_i + tokens[14].to_i )

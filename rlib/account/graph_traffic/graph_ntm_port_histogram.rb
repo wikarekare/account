@@ -1,3 +1,4 @@
+# Graph port histogram.
 class Graph_Ports_Hist < Graph_Parent
   def initialize(host, starttime, endtime)
     super

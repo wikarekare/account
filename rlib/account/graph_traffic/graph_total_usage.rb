@@ -1,3 +1,4 @@
+# Graph total usage
 class Graph_Total_Usage < Graph_Parent
   attr_reader :start_when, :stop_when, :title
 

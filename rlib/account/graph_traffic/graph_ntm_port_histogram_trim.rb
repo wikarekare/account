@@ -1,3 +1,4 @@
+# Graph ports connected to.
 class Graph_Ports_Hist_trim < Graph_Parent # ports we don't know about get grouped together.
   def initialize(host, starttime, endtime)
     super
@@ -77,7 +78,7 @@ class Graph_Ports_Hist_trim < Graph_Parent # ports we don't know about get group
         File.open( filename ).each do |line|
           next unless line[0, 1] != '#'
 
-          tokens = line.chomp.strip.split(/\t/)
+          tokens = line.chomp.strip.split("\t")
           next unless tokens[7] == target && !ignore?(tokens[8]) && (t = Time.parse(tokens[0])) >= @start && t <= @end
 
           port = port_name(tokens[10], tokens[6].to_i ) # Replace port numbers with names.
