@@ -19,7 +19,7 @@ load '/wikk/etc/wikk.conf' unless defined? WIKK_CONF
 # Update the daily log_summary cache
 # Then generate site and link usage graphs for the web site
 class Preprocess
-  FLINK = 5   # First active link
+  FLINK = 6   # First active link
   NLINKS = 7  # Total number of links
 
   # The global free rate is defined in the 'plan' table's free_rate field for plan_id -1
