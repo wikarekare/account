@@ -8,7 +8,11 @@ class Graph_flow_Host_Hist_trim < Graph_Parent
     super
     @debug = debug
     @site_name = site_name
-    @site_ip = IPSocket.getaddress(site_name)        # Change to site_name, as this becomes the site local network.
+    begin # Better error report to trace bug introduced by change in data type returned by SQL query
+      @site_ip = IPSocket.getaddress(site_name)        # Change to site_name, as this becomes the site local network.
+    rescue StandardError => e
+      raise "getaddrinfo: #{site_name} Name or service not known"
+    end
     @ip_net = WIKK::IPv4.new(@site_ip, WIKK::IPv4.maskbits_to_i(NETWORK_MASK_BITS))
     @start_time = starttime
     @end_time = endtime
